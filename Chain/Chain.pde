@@ -69,7 +69,7 @@ void settings()
 *******************************************************************************/
 void setup()
 {
-  surface.setTitle("OpenManipulator Chain");
+  surface.setTitle("OpenManipulator");
   child = new ChildApplet();
 
   initShape();
@@ -259,11 +259,11 @@ void drawTitle()
   rotateZ(radians(180));
   textSize(60);
   fill(255,204,102);
-  text("OpenManipulator Chain", -450,75,0);
+  text("OpenManipulator", -400,75,0);
   textSize(20);
   fill(102,255,255);
-  text("Move manipulator 'Q,A','W,S','E,D'", -450,120,0);
-  text("Initial view 'I'", -450,150,0);
+  //text("Move manipulator 'Q,A','W,S','E,D'", -450,120,0);
+  text("Initial view 'I'", -400,120,0);
   popMatrix();
 }
 
@@ -563,7 +563,7 @@ class ChildApplet extends PApplet
 * Init Joint Space Controller
 *******************************************************************************/
     headLabel = cp5.addTextlabel("Label")
-                   .setText("Controller for OpenManipulator Chain")
+                   .setText("Controller for OpenManipulator")
                    .setPosition(10,20)
                    .setColorValue(0xffffff00)
                    .setFont(createFont("arial",20))
@@ -592,7 +592,7 @@ class ChildApplet extends PApplet
              ;
 
     joint2 = cp5.addKnob("joint2")
-             .setRange(-3.14,3.14)
+             .setRange(-2.05,1.57)
              .setValue(0)
              .setPosition(150,140)
              .setRadius(50)
@@ -604,7 +604,7 @@ class ChildApplet extends PApplet
              ;
 
     joint3 = cp5.addKnob("joint3")
-             .setRange(-3.14,3.14)
+             .setRange(-1.53,1.57)
              .setValue(0)
              .setPosition(270,140)
              .setRadius(50)
@@ -616,7 +616,7 @@ class ChildApplet extends PApplet
              ;
 
     joint4 = cp5.addKnob("joint4")
-             .setRange(-3.14,3.14)
+             .setRange(-1.8,2.0)
              .setValue(0)
              .setPosition(85,260)
              .setRadius(50)
@@ -806,14 +806,16 @@ class ChildApplet extends PApplet
 /*******************************************************************************
 * Init Motion
 *******************************************************************************/
-    cp5.addButton("Start")
+    cp5.addButton("Motion_1")
+       .setCaptionLabel("Motion 1")
        .setValue(0)
        .setPosition(0,200)
        .setSize(400,100)
        .setFont(createFont("arial",15))
        ;
 
-    cp5.addButton("Stop")
+    cp5.addButton("Motion_2")
+       .setCaptionLabel("Motion 2")
        .setValue(0)
        .setPosition(0,400)
        .setSize(400,100)
@@ -842,8 +844,8 @@ class ChildApplet extends PApplet
     cp5.getController("Motion_Start").moveTo("Hand Guiding");
     cp5.getController("Motion_Repeat").moveTo("Hand Guiding");
 
-    cp5.getController("Start").moveTo("Motion");
-    cp5.getController("Stop").moveTo("Motion");
+    cp5.getController("Motion_1").moveTo("Motion");
+    cp5.getController("Motion_2").moveTo("Motion");
   }
 
   public void draw()
@@ -872,13 +874,13 @@ class ChildApplet extends PApplet
 
       opencr_port.write("opm"   + ',' +
                         "ready" + '\n');
-      println("OpenManipulator Chain Ready!!!");
+      println("OpenManipulator Ready!!!");
     }
     else
     {
       opencr_port.write("opm"  + ',' +
                         "end"  + '\n');
-      println("OpenManipulator Chain End...");
+      println("OpenManipulator End...");
     }
   }
 
@@ -1245,13 +1247,13 @@ class ChildApplet extends PApplet
     }
   }
 
-  public void Start(int theValue)
+  public void Motion_1(int theValue)
   {
     if (onoff_flag)
     {
       opencr_port.write("motion"  + ',' +
-                        "start"   + '\n');
-      println("Motion Start!!!");
+                        "1"   + '\n');
+      println("Motion 1");
     }
     else
     {
@@ -1259,13 +1261,13 @@ class ChildApplet extends PApplet
     }
   }
 
-  public void Stop(int theValue)
+  public void Motion_2(int theValue)
   {
     if (onoff_flag)
     {
       opencr_port.write("motion"  + ',' +
-                        "stop"    + '\n');
-      println("Motion Stop!!!");
+                        "2"    + '\n');
+      println("Motion 2");
     }
     else
     {
