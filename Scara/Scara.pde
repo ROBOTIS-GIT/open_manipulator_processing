@@ -35,13 +35,11 @@ PShape goal_link1_shape,
        goal_link2_shape, 
        goal_link3_shape, 
        goal_link4_shape, 
-       goal_link5_shape, 
        goal_tool_shape;
 PShape ctrl_link1_shape, 
        ctrl_link2_shape, 
        ctrl_link3_shape, 
        ctrl_link4_shape, 
-       ctrl_link5_shape, 
        ctrl_tool_shape;
 
 // Model pose
@@ -123,14 +121,14 @@ void serialEvent(Serial opencr_port)
 
   String[] cmd = split(opencr_string, ',');
 
-  if (cmd[0].equals("angle"))
+  if (cmd[0].equals("joint"))
   {
     for (int cmd_cnt = 1; cmd_cnt < cmd.length; cmd_cnt++)
     {
       receive_joint_angle[cmd_cnt-1] = float(cmd[cmd_cnt]);
-      print("joint " + cmd_cnt + ": " + cmd[cmd_cnt] + "  ");
+      // print("joint " + cmd_cnt + ": " + cmd[cmd_cnt] + "  ");
     }
-    println("");
+    // println("");
   }
   else if (cmd[0].equals("tool"))
   {
@@ -139,8 +137,8 @@ void serialEvent(Serial opencr_port)
 
     receive_tool_pos = ctrl_tool_pos = tool2pos;
     
-    print("tool : " + cmd[1]);
-    println("");
+    // print("tool : " + cmd[1]);
+    // println("");
   }
   else
   {
@@ -794,14 +792,14 @@ class ChildApplet extends PApplet
       joint3.setValue(ctrl_joint_angle[2]);
       tool.setValue(ctrl_tool_pos);
 
-      opencr_port.write("opm"   + ',' +
-                        "ready" + '\n');
+      opencr_port.write("actuator"   + ',' +
+                        "on" + '\n');
       println("OpenManipulator SCARA Ready!!!");
     }
     else
     {
-      opencr_port.write("opm"  + ',' +
-                        "end"  + '\n');
+      opencr_port.write("actuator"  + ',' +
+                        "off"  + '\n');
       println("OpenManipulator SCARA End...");
     }
   }
@@ -963,11 +961,11 @@ class ChildApplet extends PApplet
 /*******************************************************************************
 * Init Function of Motion
 *******************************************************************************/
-  public void Motion_Start(int theValue)
+  public void Demo_Start(int theValue)
   {
     if (onoff_flag)
     {
-      opencr_port.write("motion"  + ',' +
+      opencr_port.write("demo"  + ',' +
                         "start"   + '\n');
     }
     else
@@ -976,11 +974,11 @@ class ChildApplet extends PApplet
     }
   }
 
-  public void Motion_Stop(int theValue)
+  public void Demo_Stop(int theValue)
   {
     if (onoff_flag)
     {
-      opencr_port.write("motion"  + ',' +
+      opencr_port.write("demo"  + ',' +
                         "stop"    + '\n');
     }
     else
