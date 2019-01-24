@@ -657,8 +657,8 @@ class ChildApplet extends PApplet
        .setColorBackground(color(100, 160, 0))
        ;
 
-    cp5.addButton("Send_Joint_Angle")
-       .setCaptionLabel("Send Joint Angle")
+    cp5.addButton("Set_Joint_Angle")
+       .setCaptionLabel("Set Joint Angle")
        .setValue(0)
        .setPosition(0,400)
        .setSize(400,40)
@@ -952,7 +952,7 @@ class ChildApplet extends PApplet
     }
   }
 
-  public void Send_Joint_Angle(int theValue)
+  public void Set_Joint_Angle(int theValue)
   {
     if (onoff_flag)
     {
