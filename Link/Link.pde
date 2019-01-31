@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright 2018 ROBOTIS CO., LTD.
+* Copyright 2016 ROBOTIS CO., LTD.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -14,8 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Authors: Darby Lim, Hye-Jong KIM, Ryan Shim, Yong-Ho Na */
-
+/* Authors: Hye-Jong KIM */
 
 /**
  * this code is compatible with open_manipulator_chain.ino
@@ -31,11 +30,10 @@ import controlP5.*;
 import processing.serial.*;
 
 // Shape variables
-PShape goal_link1_shape, goal_link2_shape, goal_link3_shape, goal_link4_shape, goal_link5_shape, goal_left_palm_shape, goal_right_palm_shape;
-PShape ctrl_link1_shape, ctrl_link2_shape, ctrl_link3_shape, ctrl_link4_shape, ctrl_link5_shape, ctrl_left_palm_shape, ctrl_right_palm_shape;
-
+PShape base, link0, link1, link2, link3, link4, link5, link6, link7, tool;
+PShape ctrl_base, ctrl_link0, ctrl_link1, ctrl_link2, ctrl_link3, ctrl_link4, ctrl_link5, ctrl_link6, ctrl_link7, ctrl_tool;
 // Model pose
-float model_trans_x, model_trans_y, model_trans_z, model_scale_factor;
+float model_rot_x, model_rot_z, model_trans_x, model_trans_y, model_trans_z, model_scale_factor;
 
 // World pose
 float world_rot_x, world_rot_y;
@@ -44,11 +42,8 @@ float world_rot_x, world_rot_y;
 Serial opencr_port;
 
 // Angle variable
-float[] receive_joint_angle = new float[4];
-float[] receive_gripper_pos = new float[2];
-
-float[] ctrl_joint_angle = new float[4];
-float[] ctrl_gripper_pos = new float[2];
+float[] joint_angle = new float[11];
+float[] current_joint_angle = new float[11];
 
 int tabFlag = 1;
 
@@ -69,7 +64,7 @@ void settings()
 *******************************************************************************/
 void setup()
 {
-  surface.setTitle("OpenManipulator");
+  surface.setTitle("OpenManipulator Link");
   child = new ChildApplet();
 
   initShape();
@@ -79,7 +74,7 @@ void setup()
 }
 
 /*******************************************************************************
-* (loop function)
+* Draw (loop function)
 *******************************************************************************/
 void draw()
 {
@@ -88,7 +83,11 @@ void draw()
   drawTitle();
   drawWorldFrame();
 
-  drawManipulator();
+  if(tabFlag == 1)
+  {
+    drawManipulator();
+  }
+  drawCurrentManipulator();
 }
 
 /*******************************************************************************
@@ -112,30 +111,37 @@ void serialEvent(Serial opencr_port)
   opencr_string = trim(opencr_string);
 
   String[] cmd = split(opencr_string, ',');
-
+  
+  float[] received_joint_angle = new float[11];
+  
   if (cmd[0].equals("angle"))
   {
+    print("received joint ");
     for (int cmd_cnt = 1; cmd_cnt < cmd.length; cmd_cnt++)
     {
-      receive_joint_angle[cmd_cnt-1] = float(cmd[cmd_cnt]);
-      //print("joint " + cmd_cnt + ": " + cmd[cmd_cnt] + "  ");
+      received_joint_angle[cmd_cnt-1] = float(cmd[cmd_cnt]);
+      if(cmd_cnt < 4)
+        print(cmd_cnt + ": " + cmd[cmd_cnt] + "  ");
     }
-    //println("");
-  }
-  else if (cmd[0].equals("tool"))
-  {
-    float angle2pos = map(float(cmd[1]), -0.015*10, 0.010*10, 0.010*1000, 0.035*1000);
-
-    receive_gripper_pos[0] = ctrl_gripper_pos[0] = angle2pos;
-    receive_gripper_pos[1] = ctrl_gripper_pos[1] = receive_gripper_pos[0] * (-2);
-    
-    //print("tool : " + cmd[1]);
-    //println("");
+    println("");
   }
   else
   {
-    println("Error");
+    //println("Other Serial");
   }
+  
+  for(int i=0; i < 3; i++)
+  {
+    current_joint_angle[i] = received_joint_angle[i];
+  }
+  current_joint_angle[3] = (current_joint_angle[1] - current_joint_angle[2]);
+  current_joint_angle[4] = -PI - (current_joint_angle[1] - current_joint_angle[2]);
+  current_joint_angle[5] = -PI - (current_joint_angle[1] - current_joint_angle[2]);
+  current_joint_angle[6] = -180*PI/180 - current_joint_angle[2];
+  current_joint_angle[7] = current_joint_angle[1];
+  current_joint_angle[8] = -15*PI/180 - current_joint_angle[1];
+  current_joint_angle[9] = current_joint_angle[2] - 195*PI/180;
+  current_joint_angle[10] = +90*PI/180 - current_joint_angle[2];  
 }
 
 /*******************************************************************************
@@ -163,36 +169,76 @@ void initView()
 *******************************************************************************/
 void initShape()
 {
-  goal_link1_shape       = loadShape("meshes/chain_link1.obj");
-  goal_link2_shape       = loadShape("meshes/chain_link2.obj");
-  goal_link3_shape       = loadShape("meshes/chain_link3.obj");
-  goal_link4_shape       = loadShape("meshes/chain_link4.obj");
-  goal_link5_shape       = loadShape("meshes/chain_link5.obj");
-  goal_left_palm_shape   = loadShape("meshes/chain_link_grip_l.obj");
-  goal_right_palm_shape  = loadShape("meshes/chain_link_grip_r.obj");
+  base        = loadShape("meshes/base.obj");
+  link0       = loadShape("meshes/link0.obj");
+  link1       = loadShape("meshes/link1.obj");
+  link2       = loadShape("meshes/link2.obj");
+  link3       = loadShape("meshes/link3.obj");
+  link4       = loadShape("meshes/link4.obj");
+  link5       = loadShape("meshes/link5.obj");
+  link6       = loadShape("meshes/link6.obj");
+  link7       = loadShape("meshes/link7.obj");
+  tool        = loadShape("meshes/tool.obj");
 
-  ctrl_link1_shape       = loadShape("meshes/chain_link1.obj");
-  ctrl_link2_shape       = loadShape("meshes/chain_link2.obj");
-  ctrl_link3_shape       = loadShape("meshes/chain_link3.obj");
-  ctrl_link4_shape       = loadShape("meshes/chain_link4.obj");
-  ctrl_link5_shape       = loadShape("meshes/chain_link5.obj");
-  ctrl_left_palm_shape   = loadShape("meshes/chain_link_grip_l.obj");
-  ctrl_right_palm_shape  = loadShape("meshes/chain_link_grip_r.obj");
+  ctrl_base        = loadShape("meshes/base.obj");
+  ctrl_link0       = loadShape("meshes/link0.obj");
+  ctrl_link1       = loadShape("meshes/link1.obj");
+  ctrl_link2       = loadShape("meshes/link2.obj");
+  ctrl_link3       = loadShape("meshes/link3.obj");
+  ctrl_link4       = loadShape("meshes/link4.obj");
+  ctrl_link5       = loadShape("meshes/link5.obj");
+  ctrl_link6       = loadShape("meshes/link6.obj");
+  ctrl_link7       = loadShape("meshes/link7.obj");
+  ctrl_tool        = loadShape("meshes/tool.obj");
 
-  ctrl_link1_shape.setFill(color(200));
-  ctrl_link2_shape.setFill(color(200));
-  ctrl_link3_shape.setFill(color(200));
-  ctrl_link4_shape.setFill(color(200));
-  ctrl_link5_shape.setFill(color(200));
-  ctrl_left_palm_shape.setFill(color(200));
-  ctrl_right_palm_shape.setFill(color(200));
+  ctrl_base.setFill(color(200));
+  ctrl_link0.setFill(color(200));
+  ctrl_link1.setFill(color(200));
+  ctrl_link2.setFill(color(200));
+  ctrl_link3.setFill(color(200));
+  ctrl_link4.setFill(color(200));
+  ctrl_link5.setFill(color(200));
+  ctrl_link6.setFill(color(200));
+  ctrl_link7.setFill(color(200));
+  ctrl_tool.setFill(color(200));
 
-  setCtrlJointAngle(0, 0, 0, 0);
-  gripperOff();
-
-  receive_gripper_pos[0] = 0.030 * 1000 ;
-  receive_gripper_pos[1] = receive_gripper_pos[0] * (-2);
+  joint_angle[0] = 0*PI/180;
+  joint_angle[1] = -90.0*PI/180;
+  joint_angle[2] = -160*PI/180;
+  current_joint_angle[0] = 0*PI/180;
+  current_joint_angle[1] = -90.0*PI/180;
+  current_joint_angle[2] = -160*PI/180;
+  passiveJointSet();
 }
+
+/*******************************************************************************
+* passiveJointSet
+*******************************************************************************/
+
+void passiveJointSet()
+{
+  joint_angle[3] = (joint_angle[1] - joint_angle[2]);
+  joint_angle[4] = -PI - (joint_angle[1] - joint_angle[2]);
+  joint_angle[5] = -PI - (joint_angle[1] - joint_angle[2]);
+  joint_angle[6] = -180*PI/180 - joint_angle[2];
+  joint_angle[7] = joint_angle[1];
+  joint_angle[8] = -15*PI/180 - joint_angle[1];
+  joint_angle[9] = joint_angle[2] - 195*PI/180;
+  joint_angle[10] = +90*PI/180 - joint_angle[2];  
+  
+  current_joint_angle[3] = (current_joint_angle[1] - current_joint_angle[2]);
+  current_joint_angle[4] = -PI - (current_joint_angle[1] - current_joint_angle[2]);
+  current_joint_angle[5] = -PI - (current_joint_angle[1] - current_joint_angle[2]);
+  current_joint_angle[6] = -180*PI/180 - current_joint_angle[2];
+  current_joint_angle[7] = current_joint_angle[1];
+  current_joint_angle[8] = -15*PI/180 - current_joint_angle[1];
+  current_joint_angle[9] = current_joint_angle[2] - 195*PI/180;
+  current_joint_angle[10] = +90*PI/180 - current_joint_angle[2];  
+}
+
+/*******************************************************************************
+* initAngleCoefficient
+*******************************************************************************/
 
 /*******************************************************************************
 * Set window characteristic
@@ -214,9 +260,11 @@ void setWindow()
 *******************************************************************************/
 void drawSphere(int x, int y, int z, int r, int g, int b, int size)
 {
-  translate(x, y, z);
+  pushMatrix();
+  translate(x,y,z);
   stroke(r,g,b);
   sphere(size);
+  popMatrix();
 }
 
 void saveSpherePose()
@@ -254,16 +302,17 @@ void drawSphereAfterEffect()
 *******************************************************************************/
 void drawTitle()
 {
+  scale(1 + model_scale_factor);
   pushMatrix();
   rotateX(radians(60));
   rotateZ(radians(180));
   textSize(60);
   fill(255,204,102);
-  text("OpenManipulator", -400,75,0);
-  textSize(20);
+  text("OpenManipulator Link", -450,75,0);
+  textSize(10);
   fill(102,255,255);
-  //text("Move manipulator 'Q,A','W,S','E,D'", -450,120,0);
-  text("Initial view 'I'", -400,120,0);
+  text("Move manipulator 'Q,A','W,S','E,D'", -450,120,0);
+  text("Initial view 'I'", -450,150,0);
   popMatrix();
 }
 
@@ -272,97 +321,203 @@ void drawTitle()
 *******************************************************************************/
 void drawManipulator()
 {
-  pushMatrix();
-
   scale(1 + model_scale_factor);
 
+  pushMatrix();
   translate(-model_trans_x, -model_trans_y, -model_trans_z);
-  rotateX(0.0);
-  rotateZ(0.0);
-  shape(goal_link1_shape);
-  drawLocalFrame();
-
-  translate(0.0, 0.0, 0.036*1000);
-  rotateZ(-receive_joint_angle[0]);
-  shape(goal_link2_shape);
-  drawLocalFrame(); 
-
-  translate(0.0, 0.0, 0.040*1000);
-  rotateY(receive_joint_angle[1]);
-  shape(goal_link3_shape);
-  drawLocalFrame();
-
-  translate(0.024*1000, 0.0, 0.128*1000);
-  rotateY(receive_joint_angle[2]);
-  shape(goal_link4_shape);
-  drawLocalFrame();
-
-  translate(0.124*1000, 0.0, 0.0);
-  rotateY(receive_joint_angle[3]);
-  shape(goal_link5_shape);
-  drawLocalFrame();
+  rotateX(model_rot_x);
+  rotateZ(model_rot_z);
   
-  translate(0.130*1000, 0.014*1000, 0);
-  drawSphere(0, -7, 0, 100, 100, 100, 10);
-  saveSpherePose();
-  translate(0, receive_gripper_pos[0], 0);
-  shape(goal_right_palm_shape);
+  shape(base);
   drawLocalFrame();
-      
-  translate(0, -0.014*1000, 0);
-  translate(0, receive_gripper_pos[1], 0);
-  shape(goal_left_palm_shape);
+  translate(0, 0, 6.79972);
+  
+  rotateZ(-joint_angle[0]);
+  shape(link0);
+  drawLocalFrame();
+  translate(0, 0, 44.99960);
+  
+  rotateY(joint_angle[1]);
+  shape(link1);
+  drawLocalFrame();
+  popMatrix();
+
+///////////////////////////////////////////
+
+  pushMatrix();
+  translate(-model_trans_x, -model_trans_y, -model_trans_z);
+  rotateX(model_rot_x);
+  rotateZ(model_rot_z);
+  
+  //shape(base);
+  translate(0, 0, 6.79972);
+  
+  rotateZ(-joint_angle[0]);
+  //shape(link0);
+  translate(0, 0, 44.99960);
+  
+  rotateY(joint_angle[2]);
+  shape(link2);
+  drawLocalFrame();
+  translate(50, 0, 0);
+  
+  rotateY(joint_angle[3]);
+  shape(link3);
+  drawLocalFrame();
+  translate(200, 0, 0);
+  
+  rotateY(joint_angle[4]);
+  shape(link4);
+  drawLocalFrame();
+  translate(250, 0, 0);
+  
+  rotateY(joint_angle[6]);
+  shape(tool);
+  drawLocalFrame();
+  popMatrix();
+
+///////////////////////////////////////////
+  
+  pushMatrix();
+  translate(-model_trans_x, -model_trans_y, -model_trans_z);
+  rotateX(model_rot_x);
+  rotateZ(model_rot_z);
+  
+  //shape(base);
+  translate(0, 0, 6.79972);
+  
+  rotateZ(-joint_angle[0]);
+  //shape(link0);
+  translate(0, 0, 44.99960);
+  rotateY(25*PI/180);
+  translate(-50, 0, 0);
+  rotateY(-25*PI/180);
+  
+  rotateY(joint_angle[7]);  
+  shape(link5);
+  drawLocalFrame();
+  translate(200, 0, 0);
+    
+  rotateY(joint_angle[8]);
+  shape(link6);
+  drawLocalFrame();
+  rotateY(40*PI/180);
+  translate(50, 0, 0);
+  rotateY(-80*PI/180);
+  translate(50, 0, 0);
+  rotateY(40*PI/180);
+  
+  rotateY(joint_angle[9]);
+  rotateY(30*PI/180);
+  shape(link7);
   drawLocalFrame();
 
   popMatrix();
-  
-  drawSphereAfterEffect();
-  
-  if(tabFlag == 1)
-  {
-    pushMatrix();
 
-    scale(1 + model_scale_factor);
 
-    translate(-model_trans_x, -model_trans_y, -model_trans_z);
-    rotateX(0.0);
-    rotateZ(0.0);
-    shape(ctrl_link1_shape);
-    drawLocalFrame();
+}
+
+void drawCurrentManipulator()
+{
+////////////////////////Current manipulator///////////////////////////////
+
+  pushMatrix();
+  translate(-model_trans_x, -model_trans_y, -model_trans_z);
+  rotateX(model_rot_x);
+  rotateZ(model_rot_z);
   
-    translate(0.0, 0.0, 0.036*1000);
-    rotateZ(-ctrl_joint_angle[0]);
-    shape(ctrl_link2_shape);
-    drawLocalFrame(); 
+  shape(ctrl_base);
+  drawLocalFrame();
+  translate(0, 0, 6.79972);
   
-    translate(0.0, 0.0, 0.040*1000);
-    rotateY(ctrl_joint_angle[1]);
-    shape(ctrl_link3_shape);
-    drawLocalFrame();
+  rotateZ(-current_joint_angle[0]);
+  shape(ctrl_link0);
+  drawLocalFrame();
+  translate(0, 0, 44.99960);
   
-    translate(0.024*1000, 0.0, 0.128*1000);
-    rotateY(ctrl_joint_angle[2]);
-    shape(ctrl_link4_shape);
-    drawLocalFrame();
+  rotateY(current_joint_angle[1]);
+  shape(ctrl_link1);
+  drawLocalFrame();
+  popMatrix();
+
+///////////////////////////////////////////
+
+  pushMatrix();
+  translate(-model_trans_x, -model_trans_y, -model_trans_z);
+  rotateX(model_rot_x);
+  rotateZ(model_rot_z);
   
-    translate(0.124*1000, 0.0, 0.0);
-    rotateY(ctrl_joint_angle[3]);
-    shape(ctrl_link5_shape);
-    drawLocalFrame();
+  //shape(base);
+  translate(0, 0, 6.79972);
   
-    translate(0.130*1000, 0.014*1000, 0);
-    drawSphere(0, -7, 0, 200, 200, 200, 10);
-    translate(0, ctrl_gripper_pos[0], 0);
-    shape(ctrl_right_palm_shape);
-    drawLocalFrame();
+  rotateZ(-current_joint_angle[0]);
+  //shape(link0);
+  translate(0, 0, 44.99960);
   
-    translate(0, -0.014*1000, 0);
-    translate(0, ctrl_gripper_pos[1], 0);
-    shape(ctrl_left_palm_shape);
-    drawLocalFrame();
+  rotateY(current_joint_angle[2]);
+  shape(ctrl_link2);
+  drawLocalFrame();
+  translate(50, 0, 0);
+  
+  rotateY(current_joint_angle[3]);
+  shape(ctrl_link3);
+  drawLocalFrame();
+  translate(200, 0, 0);
+  
+  rotateY(current_joint_angle[4]);
+  shape(ctrl_link4);
+  drawLocalFrame();
+  translate(250, 0, 0);
+  
+  rotateY(current_joint_angle[6]);
+  shape(ctrl_tool);
+  drawLocalFrame();
+
+  translate(38.67882, 7.0, -23.37315);
+  //translate(0.0, 0.0, 0.0);
+  drawSphere(0, -7, 0, 100, 100, 100, 10);
+  saveSpherePose();
+  popMatrix();
+
+///////////////////////////////////////////
+  
+  pushMatrix();
+  translate(-model_trans_x, -model_trans_y, -model_trans_z);
+  rotateX(model_rot_x);
+  rotateZ(model_rot_z);
+  
+  //shape(base);
+  translate(0, 0, 6.79972);
+  
+  rotateZ(-current_joint_angle[0]);
+  //shape(link0);
+  translate(0, 0, 44.99960);
+  rotateY(25*PI/180);
+  translate(-50, 0, 0);
+  rotateY(-25*PI/180);
+  
+  rotateY(current_joint_angle[7]);  
+  shape(ctrl_link5);
+  drawLocalFrame();
+  translate(200, 0, 0);
     
-    popMatrix();
-  }
+  rotateY(current_joint_angle[8]);
+  shape(ctrl_link6);
+  drawLocalFrame();
+  rotateY(40*PI/180);
+  translate(50, 0, 0);
+  rotateY(-80*PI/180);
+  translate(50, 0, 0);
+  rotateY(40*PI/180);
+  
+  rotateY(current_joint_angle[9]);
+  rotateY(30*PI/180);
+  shape(ctrl_link7);
+  drawLocalFrame();
+
+  popMatrix();
+
+  drawSphereAfterEffect();
 }
 
 /*******************************************************************************
@@ -370,17 +525,17 @@ void drawManipulator()
 *******************************************************************************/
 void drawWorldFrame()
 {
-  strokeWeight(10);
+  strokeWeight(5);
   stroke(255, 0, 0, 100);
-  line(0, 0, 0, 200, 0, 0);
+  line(0, 0 ,0 , 100, 0, 0);
 
-  strokeWeight(10);
+  strokeWeight(5);
   stroke(0, 255, 0, 100);
-  line(0, 0, 0, 0, -200, 0);
+  line(0, 0, 0, 0, -100, 0);
 
   stroke(0, 0, 255, 100);
-  strokeWeight(10);
-  line(0, 0, 0, 0, 0, 200);
+  strokeWeight(5);
+  line(0, 0, 0, 0, 0, 100);
 }
 
 /*******************************************************************************
@@ -388,58 +543,19 @@ void drawWorldFrame()
 *******************************************************************************/
 void drawLocalFrame()
 {
-  strokeWeight(10);
+  strokeWeight(5);
   stroke(255, 0, 0, 100);
-  line(0, 0 ,0 , 60, 0, 0);
+  line(0, 0 ,0 , 50, 0, 0);
 
-  strokeWeight(10);
+  strokeWeight(5);
   stroke(0, 255, 0, 100);
-  line(0, 0, 0, 0, -60, 0);
+  line(0, 0, 0, 0, -50, 0);
 
   stroke(0, 0, 255, 100);
-  strokeWeight(10);
-  line(0, 0, 0, 0, 0, 60);
+  strokeWeight(5);
+  line(0, 0, 0, 0, 0, 50);
 }
 
-/*******************************************************************************
-* Set joint angle
-*******************************************************************************/
-void setCtrlJointAngle(float angle1, float angle2, float angle3, float angle4)
-{
-  ctrl_joint_angle[0] = angle1;
-  ctrl_joint_angle[1] = angle2;
-  ctrl_joint_angle[2] = angle3;
-  ctrl_joint_angle[3] = angle4;
-}
-
-/*******************************************************************************
-* Gripper on
-*******************************************************************************/
-void gripperOn()
-{
-  ctrl_gripper_pos[0] = 0.020 * 1000;
-  ctrl_gripper_pos[1] = ctrl_gripper_pos[0] * (-2);
-}
-
-/*******************************************************************************
-* Gripper off
-*******************************************************************************/
-void gripperOff()
-{
-  ctrl_gripper_pos[0] = 0.0 * 1000;
-  ctrl_gripper_pos[1] = ctrl_gripper_pos[0] * (-2);
-}
-
-/*******************************************************************************
-* Gripper angle to position
-*******************************************************************************/
-void gripperAngle2Pos(float angle)
-{
-  float angle2pos = map(angle, 0.907, -1.13, 0.010*1000, 0.035 * 1000);
-
-  ctrl_gripper_pos[0] = angle2pos;
-  ctrl_gripper_pos[1] = ctrl_gripper_pos[0] * (-2);
-}
 
 /*******************************************************************************
 * Mouse drag event
@@ -494,9 +610,11 @@ class ChildApplet extends PApplet
 
   Textlabel headLabel;
 
-  Knob joint1, joint2, joint3, joint4, gripper;
+  Knob joint0, joint1, joint2;
 
-  float grip_angle;
+  float[] send_joint_angle = new float[3];
+  int set_suction = 0;
+  
   boolean onoff_flag = false;
   int motion_num = 0;
 
@@ -526,11 +644,11 @@ class ChildApplet extends PApplet
        .setColorActive(color(0,128,0))
        ;
 
-    cp5.addTab("Hand Guiding")
-       .setColorBackground(color(100, 160, 0))
-       .setColorLabel(color(255))
-       .setColorActive(color(0,0,255))
-       ;
+    //cp5.addTab("Hand Teaching")
+    //   .setColorBackground(color(100, 160, 0))
+    //   .setColorLabel(color(255))
+    //   .setColorActive(color(0,0,255))
+    //   ;
 
     cp5.addTab("Motion")
        .setColorBackground(color(0, 160, 100))
@@ -549,10 +667,10 @@ class ChildApplet extends PApplet
        .setId(2)
        ;
 
-    cp5.getTab("Hand Guiding")
-       .activateEvent(true)
-       .setId(3)
-       ;
+    //cp5.getTab("Hand Teaching")
+    //   .activateEvent(true)
+    //   .setId(3)
+    //   ;
 
     cp5.getTab("Motion")
        .activateEvent(true)
@@ -563,14 +681,13 @@ class ChildApplet extends PApplet
 * Init Joint Space Controller
 *******************************************************************************/
     headLabel = cp5.addTextlabel("Label")
-                   .setText("Controller for OpenManipulator")
+                   .setText("Controller for OpenManipulator Link")
                    .setPosition(10,20)
                    .setColorValue(0xffffff00)
                    .setFont(createFont("arial",20))
                    ;
 
     cp5.addToggle("Controller_OnOff")
-       .setCaptionLabel("      Controller Off             Controller On")
        .setPosition(0,50)
        .setSize(400,40)
        .setMode(Toggle.SWITCH)
@@ -579,8 +696,8 @@ class ChildApplet extends PApplet
        .setColorBackground(color(255, 255, 153))
        ;
 
-    joint1 = cp5.addKnob("joint1")
-             .setRange(-3.14,3.14)
+    joint0 = cp5.addKnob("joint0")
+             .setRange(-169.0*PI/180 , 169.0*PI/180)
              .setValue(0)
              .setPosition(30,140)
              .setRadius(50)
@@ -591,9 +708,9 @@ class ChildApplet extends PApplet
              .setColorActive(color(255,255,0))
              ;
 
-    joint2 = cp5.addKnob("joint2")
-             .setRange(-2.05,1.57)
-             .setValue(0)
+    joint1 = cp5.addKnob("joint1")
+             .setRange(-119.0*PI/180 , -1.0*PI/180)
+             .setValue(3.14/2)
              .setPosition(150,140)
              .setRadius(50)
              .setDragDirection(Knob.HORIZONTAL)
@@ -603,9 +720,9 @@ class ChildApplet extends PApplet
              .setColorActive(color(255,255,0))
              ;
 
-    joint3 = cp5.addKnob("joint3")
-             .setRange(-1.53,1.57)
-             .setValue(0)
+    joint2 = cp5.addKnob("joint2")
+             .setRange(-169.0*PI/180 , -91.0*PI/180)
+             .setValue(3.14)
              .setPosition(270,140)
              .setRadius(50)
              .setDragDirection(Knob.HORIZONTAL)
@@ -614,30 +731,6 @@ class ChildApplet extends PApplet
              .setColorBackground(color(0, 160, 100))
              .setColorActive(color(255,255,0))
              ;
-
-    joint4 = cp5.addKnob("joint4")
-             .setRange(-1.8,2.0)
-             .setValue(0)
-             .setPosition(85,260)
-             .setRadius(50)
-             .setDragDirection(Knob.HORIZONTAL)
-             .setFont(createFont("arial",10))
-             .setColorForeground(color(255))
-             .setColorBackground(color(0, 160, 100))
-             .setColorActive(color(255,255,0))
-             ;
-
-    gripper = cp5.addKnob("gripper")
-                .setRange(-10.0, 10.0)
-                .setValue(0.0)
-                .setPosition(210,260)
-                .setRadius(50)
-                .setDragDirection(Knob.HORIZONTAL)
-                .setFont(createFont("arial",10))
-                .setColorForeground(color(255))
-                .setColorBackground(color(0, 160, 100))
-                .setColorActive(color(255,255,0))
-                ;
 
     cp5.addButton("Origin")
        .setValue(0)
@@ -657,24 +750,14 @@ class ChildApplet extends PApplet
        .setColorBackground(color(100, 160, 0))
        ;
 
-    cp5.addButton("Set_Joint_Angle")
-       .setCaptionLabel("Set Joint Angle")
+    cp5.addButton("Send_Joint_Angle")
        .setValue(0)
        .setPosition(0,400)
        .setSize(400,40)
        .setFont(createFont("arial",15))
        ;
 
-    cp5.addButton("Set_Gripper")
-       .setCaptionLabel("Set Gripper")
-       .setValue(0)
-       .setPosition(0,460)
-       .setSize(400,40)
-       .setFont(createFont("arial",15))
-       ;
-
-    cp5.addToggle("Gripper_OnOff")
-       .setCaptionLabel("          Gripper Open                Gripper Close")
+    cp5.addToggle("Suction_OnOff")
        .setPosition(0,520)
        .setSize(400,40)
        .setMode(Toggle.SWITCH)
@@ -715,7 +798,6 @@ class ChildApplet extends PApplet
        ;
 
     cp5.addButton("Set")
-       .setCaptionLabel("Basic")
        .setValue(0)
        .setPosition(170,270)
        .setSize(60,60)
@@ -736,8 +818,7 @@ class ChildApplet extends PApplet
       .setFont(createFont("arial",15))
       ;
 
-   cp5.addToggle("Gripper_pos")
-      .setCaptionLabel("    Gripper")
+   cp5.addToggle("Suction")
       .setPosition(165,480)
       .setSize(70,70)
       .setMode(Toggle.SWITCH)
@@ -746,76 +827,60 @@ class ChildApplet extends PApplet
       .setColorBackground(color(255, 255, 153))
       ;
 
-/*******************************************************************************
-* Init Hand Guiding Controller
-*******************************************************************************/
-    cp5.addToggle("Torque_OnOff", true)
-       .setCaptionLabel("          Torque Off                      Torque On")
-       .setPosition(0,130)
-       .setSize(400,40)
-       .setMode(Toggle.SWITCH)
-       .setFont(createFont("arial",15))
-       .setColorActive(color(196, 196, 196))
-       .setColorBackground(color(255, 255, 153))
-       ;
+///*******************************************************************************
+//* Init Hand Teaching Controller
+//*******************************************************************************/
+//    cp5.addToggle("Dynamixel_OnOff")
+//       .setPosition(0,130)
+//       .setSize(400,40)
+//       .setMode(Toggle.SWITCH)
+//       .setFont(createFont("arial",15))
+//       .setColorActive(color(196, 196, 196))
+//       .setColorBackground(color(255, 255, 153))
+//       ;
        
-    cp5.addButton("Motion_Clear")
-       .setCaptionLabel("Motion Clear")
-       .setValue(0)
-       .setPosition(0,210)
-       .setSize(200,100)
-       .setFont(createFont("arial",15))
-       ;
+//    cp5.addButton("Motion_Clear")
+//       .setValue(0)
+//       .setPosition(0,210)
+//       .setSize(200,100)
+//       .setFont(createFont("arial",15))
+//       ;
 
-    cp5.addButton("Make_Joint_Pose")
-       .setCaptionLabel("Save Joint Pose")
-       .setValue(0)
-       .setPosition(200,210)
-       .setSize(200,100)
-       .setFont(createFont("arial",15))
-       ;
+//    cp5.addButton("Make_Joint_Pose")
+//       .setValue(0)
+//       .setPosition(200,210)
+//       .setSize(200,100)
+//       .setFont(createFont("arial",15))
+//       ;
 
-    cp5.addToggle("Make_Gripper_Pose")
-       .setCaptionLabel("          Gripper Open                Gripper Close")
-       .setPosition(0,320)
-       .setSize(400,40)
-       .setMode(Toggle.SWITCH)
-       .setFont(createFont("arial",15))
-       .setColorActive(color(196, 196, 196))
-       .setColorBackground(color(255, 255, 153))
-       ;
 
-    cp5.addButton("Motion_Start")
-       .setCaptionLabel("Motion Start")
-       .setValue(0)
-       .setPosition(0,400)
-       .setSize(400,80)
-       .setFont(createFont("arial",15))
-       ;
+//    cp5.addButton("Motion_Start")
+//       .setValue(0)
+//       .setPosition(0,400)
+//       .setSize(400,80)
+//       .setFont(createFont("arial",15))
+//       ;
 
-    cp5.addToggle("Motion_Repeat")
-       .setCaptionLabel("     Motion Repeat Off         Motion Repeat On")
-       .setPosition(0,490)
-       .setSize(400,80)
-       .setMode(Toggle.SWITCH)
-       .setFont(createFont("arial",15))
-       .setColorActive(color(196, 196, 196))
-       .setColorBackground(color(255, 255, 153))
-       ;
+//    cp5.addToggle("Motion_Repeat")
+//       .setPosition(0,490)
+//       .setSize(400,80)
+//       .setMode(Toggle.SWITCH)
+//       .setFont(createFont("arial",15))
+//       .setColorActive(color(196, 196, 196))
+//       .setColorBackground(color(255, 255, 153))
+//       ;
 
 /*******************************************************************************
 * Init Motion
 *******************************************************************************/
-    cp5.addButton("Motion_1")
-       .setCaptionLabel("Motion 1")
+    cp5.addButton("Start")
        .setValue(0)
        .setPosition(0,200)
        .setSize(400,100)
        .setFont(createFont("arial",15))
        ;
 
-    cp5.addButton("Motion_2")
-       .setCaptionLabel("Motion 2")
+    cp5.addButton("Stop")
        .setValue(0)
        .setPosition(0,400)
        .setSize(400,100)
@@ -835,30 +900,30 @@ class ChildApplet extends PApplet
     cp5.getController("Set").moveTo("Task Space Control");
     cp5.getController("Up").moveTo("Task Space Control");
     cp5.getController("Down").moveTo("Task Space Control");
-    cp5.getController("Gripper_pos").moveTo("Task Space Control");
+    cp5.getController("Suction").moveTo("Task Space Control");
 
-    cp5.getController("Torque_OnOff").moveTo("Hand Guiding");
-    cp5.getController("Motion_Clear").moveTo("Hand Guiding");
-    cp5.getController("Make_Joint_Pose").moveTo("Hand Guiding");
-    cp5.getController("Make_Gripper_Pose").moveTo("Hand Guiding");
-    cp5.getController("Motion_Start").moveTo("Hand Guiding");
-    cp5.getController("Motion_Repeat").moveTo("Hand Guiding");
+    //cp5.getController("Dynamixel_OnOff").moveTo("Hand Teaching");
+    //cp5.getController("Motion_Clear").moveTo("Hand Teaching");
+    //cp5.getController("Make_Joint_Pose").moveTo("Hand Teaching");
+    //cp5.getController("Motion_Start").moveTo("Hand Teaching");
+    //cp5.getController("Motion_Repeat").moveTo("Hand Teaching");
 
-    cp5.getController("Motion_1").moveTo("Motion");
-    cp5.getController("Motion_2").moveTo("Motion");
+    cp5.getController("Start").moveTo("Motion");
+    cp5.getController("Stop").moveTo("Motion");
   }
 
   public void draw()
   {
     background(0);
   }
-  
+
   void controlEvent(ControlEvent theControlEvent) {
     if (theControlEvent.isTab()) {
       println("got an event from tab : "+theControlEvent.getTab().getName()+" with id "+theControlEvent.getTab().getId());
       tabFlag = theControlEvent.getTab().getId();
     }
   }
+
 /*******************************************************************************
 * Init Function of Joint Space Controller
 *******************************************************************************/
@@ -867,63 +932,60 @@ class ChildApplet extends PApplet
     onoff_flag = flag;
     if (onoff_flag)
     {
-      joint1.setValue(ctrl_joint_angle[0]);
-      joint2.setValue(ctrl_joint_angle[1]);
-      joint3.setValue(ctrl_joint_angle[2]);
-      joint4.setValue(ctrl_joint_angle[3]);
+      joint0.setValue(current_joint_angle[0]);
+      joint1.setValue(current_joint_angle[1]);
+      joint2.setValue(current_joint_angle[2]);
 
-      opencr_port.write("opm"   + ',' +
+      opencr_port.write("om"   + ',' +
                         "ready" + '\n');
-      println("OpenManipulator Ready!!!");
+      println("OpenManipulator Link Ready!!!");
     }
     else
     {
-      opencr_port.write("opm"  + ',' +
+      opencr_port.write("om"  + ',' +
                         "end"  + '\n');
-      println("OpenManipulator End...");
+      println("OpenManipulator Link End...");
     }
+    println(onoff_flag);
+  }
+
+  void joint0(float angle)
+  {
+    joint_angle[0] = angle;   
+    passiveJointSet();
   }
 
   void joint1(float angle)
   {
-    ctrl_joint_angle[0] = angle;
+    joint_angle[1] = angle;
+    passiveJointSet();
   }
 
   void joint2(float angle)
   {
-    ctrl_joint_angle[1] = angle;
-  }
-
-  void joint3(float angle)
-  {
-    ctrl_joint_angle[2] = angle;
-  }
-
-  void joint4(float angle)
-  {
-    ctrl_joint_angle[3] = angle;
-  }
-
-  void gripper(float angle)
-  {
-    grip_angle = angle;
-    gripperAngle2Pos(angle);
+    joint_angle[2] = angle;
+    passiveJointSet();
   }
 
   public void Origin(int theValue)
   {
     if (onoff_flag)
     {
-      ctrl_joint_angle[0] = 0.0;
-      ctrl_joint_angle[1] = 0.0;
-      ctrl_joint_angle[2] = 0.0;
-      ctrl_joint_angle[3] = 0.0;
-
+      send_joint_angle[0] = 0.0;
+      send_joint_angle[1] = -90.0*PI/180.0;
+      send_joint_angle[2] = -160.0*PI/180.0;
+      
+      for(int i=0; i<3; i++)
+      {
+        joint_angle[i] = send_joint_angle[i];
+      }
+      passiveJointSet();
+            
       opencr_port.write("joint"            + ',' +
-                        ctrl_joint_angle[0] + ',' +
-                        ctrl_joint_angle[1] + ',' +
-                        ctrl_joint_angle[2] + ',' +
-                        ctrl_joint_angle[3] + '\n');
+                        send_joint_angle[0] + ',' +
+                        send_joint_angle[1] + ',' +
+                        send_joint_angle[2] + '\n');
+      println("send joint " + send_joint_angle[0] + ", " + send_joint_angle[1]  + ", " + send_joint_angle[2]  + "  ");                    
     }
     else
     {
@@ -935,16 +997,21 @@ class ChildApplet extends PApplet
   {
     if (onoff_flag)
     {
-      ctrl_joint_angle[0] = 0.0;
-      ctrl_joint_angle[1] = -60.0  * PI/180.0;
-      ctrl_joint_angle[2] = 20.0 * PI/180.0;
-      ctrl_joint_angle[3] = 40.0 * PI/180.0;
-
-      opencr_port.write("joint"        + ',' +
-                        ctrl_joint_angle[0] + ',' +
-                        ctrl_joint_angle[1] + ',' +
-                        ctrl_joint_angle[2] + ',' +
-                        ctrl_joint_angle[3] + '\n');
+      send_joint_angle[0] = 0.0;
+      send_joint_angle[1] = -90.0*PI/180.0;
+      send_joint_angle[2] = -135.0*PI/180.0;
+      
+      for(int i=0; i<3; i++)
+      {
+        joint_angle[i] = send_joint_angle[i];
+      }
+      passiveJointSet();
+      
+      opencr_port.write("joint"            + ',' +
+                        send_joint_angle[0] + ',' +
+                        send_joint_angle[1] + ',' +
+                        send_joint_angle[2] + '\n');
+      println("send joint " + send_joint_angle[0] + ", " + send_joint_angle[1]  + ", " + send_joint_angle[2]  + "  ");  
     }
     else
     {
@@ -952,15 +1019,20 @@ class ChildApplet extends PApplet
     }
   }
 
-  public void Set_Joint_Angle(int theValue)
+  public void Send_Joint_Angle(int theValue)
   {
     if (onoff_flag)
     {
-      opencr_port.write("joint"        + ',' +
-                        ctrl_joint_angle[0] + ',' +
-                        ctrl_joint_angle[1] + ',' +
-                        ctrl_joint_angle[2] + ',' +
-                        ctrl_joint_angle[3] + '\n');
+      for(int i=0; i<3; i++)
+      {
+      send_joint_angle[i] = joint_angle[i];
+      }
+
+      opencr_port.write("joint"            + ',' +
+                        send_joint_angle[0] + ',' +
+                        send_joint_angle[1] + ',' +
+                        send_joint_angle[2] + '\n');
+      println("send joint " + send_joint_angle[0] + ", " + send_joint_angle[1]  + ", " + send_joint_angle[2]  + "  ");  
     }
     else
     {
@@ -968,32 +1040,21 @@ class ChildApplet extends PApplet
     }
   }
 
-  public void Set_Gripper(int theValue)
-  {
-    if (onoff_flag)
-    {
-      opencr_port.write("gripper"  + ',' +
-                        grip_angle*0.001 + '\n');
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
-
-  void Gripper_OnOff(boolean flag)
+  void Suction_OnOff(boolean flag)
   {
     if (onoff_flag)
     {
       if (flag)
       {
-        opencr_port.write("grip"  + ',' +
+        opencr_port.write("suction"  + ',' +
                           "on" + '\n');
+        println("send suction on");
       }
       else
       {
-        opencr_port.write("grip"  + ',' +
+        opencr_port.write("suction"  + ',' +
                           "off" + '\n');
+        println("send suction off");
       }
     }
     else
@@ -1011,7 +1072,7 @@ class ChildApplet extends PApplet
     {
       opencr_port.write("task"    + ',' +
                         "forward" + '\n');
-      println("Move Forward");
+      println("send Move Forward");
     }
     else
     {
@@ -1025,7 +1086,7 @@ class ChildApplet extends PApplet
     {
       opencr_port.write("task"    + ',' +
                         "back"    + '\n');
-      println("Move Back");
+      println("send Move Back");
     }
     else
     {
@@ -1039,7 +1100,7 @@ class ChildApplet extends PApplet
     {
       opencr_port.write("task"    + ',' +
                         "left"    + '\n');
-      println("Move Left");
+      println("send Move Left");
     }
     else
     {
@@ -1053,7 +1114,7 @@ class ChildApplet extends PApplet
     {
       opencr_port.write("task"    + ',' +
                         "right"   + '\n');
-      println("Move Right");
+      println("send Move Right");
     }
     else
     {
@@ -1067,7 +1128,7 @@ class ChildApplet extends PApplet
     {
       opencr_port.write("task"    + ',' +
                         "up"      + '\n');
-      println("Move Up");
+      println("send Move Up");
     }
     else
     {
@@ -1081,7 +1142,7 @@ class ChildApplet extends PApplet
     {
       opencr_port.write("task"    + ',' +
                         "down"    + '\n');
-      println("Move Down");
+      println("send Move Down");
     }
     else
     {
@@ -1093,16 +1154,21 @@ class ChildApplet extends PApplet
   {
     if (onoff_flag)
     {
-      ctrl_joint_angle[0] = 0.0;
-      ctrl_joint_angle[1] = -60.0  * PI/180.0;
-      ctrl_joint_angle[2] = 20.0 * PI/180.0;
-      ctrl_joint_angle[3] = 40.0 * PI/180.0;
+      send_joint_angle[0] = 0.0;
+      send_joint_angle[1] = -90.0  * PI/180.0;
+      send_joint_angle[2] = -160.0 * PI/180.0;
+      
+      for(int i=0; i<3; i++)
+      {
+        current_joint_angle[i] = send_joint_angle[i];
+      }
+      passiveJointSet();
 
       opencr_port.write("joint"            + ',' +
-                        ctrl_joint_angle[0] + ',' +
-                        ctrl_joint_angle[1] + ',' +
-                        ctrl_joint_angle[2] + ',' +
-                        ctrl_joint_angle[3] + '\n');
+                        send_joint_angle[0] + ',' +
+                        send_joint_angle[1] + ',' +
+                        send_joint_angle[2] + '\n');
+      println("send joint " + send_joint_angle[0] + ", " + send_joint_angle[1]  + ", " + send_joint_angle[2]  + "  ");  
     }
     else
     {
@@ -1110,19 +1176,21 @@ class ChildApplet extends PApplet
     }
   }
 
-  void Gripper_pos(boolean flag)
+  void Suction(boolean flag)
   {
     if (onoff_flag)
     {
       if (flag)
       {
-        opencr_port.write("grip"  + ',' +
+        opencr_port.write("suction"  + ',' +
                           "on" + '\n');
+        println("send suction on");
       }
       else
       {
-        opencr_port.write("grip"  + ',' +
+        opencr_port.write("suction"  + ',' +
                           "off" + '\n');
+        println("send suction on");
       }
     }
     else
@@ -1131,147 +1199,126 @@ class ChildApplet extends PApplet
     }
   }
 
-/*******************************************************************************
-* Init Function of Hand Guiding Controller
-*******************************************************************************/
-  void Torque_OnOff(boolean flag)
-  {
-    if (onoff_flag)
-    {
-      if (flag)
-      {
-        opencr_port.write("torque"  + ',' +
-                          "on"     + '\n');
-      }
-      else
-      {
-        opencr_port.write("torque"  + ',' +
-                          "off"      + '\n');
-      }
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+///*******************************************************************************
+//* Init Function of Hand Teaching Controller
+//*******************************************************************************/
+//  void Dynamixel_OnOff(boolean flag)
+//  {
+//    if (onoff_flag)
+//    {
+//      if (flag)
+//      {
+//        opencr_port.write("motor"  + ',' +
+//                          "disable"     + '\n');
+//        println("send motor disable");
+//      }
+//      else
+//      {
+//        opencr_port.write("motor"  + ',' +
+//                          "enable"      + '\n');
+//        println("send motor enable");
+//      }
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
   
-  public void Motion_Clear(int theValue)
-  {
-    if (onoff_flag)
-    {
-      opencr_port.write("get" + ',' +
-                        "clear"  + '\n');
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+//  public void Motion_Clear(int theValue)
+//  {
+//    if (onoff_flag)
+//    {
+//      opencr_port.write("get" + ',' +
+//                        "clear"  + '\n');
+//      println("send get clear");
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 
-  public void Make_Joint_Pose(int theValue)
-  {
-    if (onoff_flag)
-    {
-      opencr_port.write("get"      + ',' +
-                        "pose"     + ',' +
-                        motion_num + '\n');
+//  public void Make_Joint_Pose(int theValue)
+//  {
+//    if (onoff_flag)
+//    {
+//      opencr_port.write("get"      + ',' +
+//                        "pose"     + ',' +
+//                        motion_num + '\n');
+//      println("send get pose");
+//      motion_num++;
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 
-      motion_num++;
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+//  public void Motion_Start(int theValue)
+//  {
+//    if (onoff_flag)
+//    {
+//      opencr_port.write("hand"     + ',' +
+//                        "once"  + '\n');
+//      println("send Motion Start!!!");
 
-  void Make_Gripper_Pose(boolean flag)
-  {
-    if (onoff_flag)
-    {
-      if (flag)
-      {
-        opencr_port.write("get"    + ',' +
-                          "on"  + '\n');
+//      motion_num = 0;
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 
-        gripper.setValue(1.3);
-      }
-      else
-      {
-        opencr_port.write("get"     + ',' +
-                          "off"  + '\n');
+//  void Motion_Repeat(boolean flag)
+//  {
+//    if (onoff_flag)
+//    {
+//      if (flag)
+//      {
+//        opencr_port.write("hand"    + ',' +
+//                          "repeat"  + '\n');
+//        println("send hand repeat");
+//      }
+//      else
+//      {
+//        opencr_port.write("hand"  + ',' +
+//                          "stop"  + '\n');
+//        println("send hand stop");
+//      }
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 
-        gripper.setValue(0.0);
-      }
-      motion_num++;
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+//  public void Start(int theValue)
+//  {
+//    if (onoff_flag)
+//    {
+//      opencr_port.write("motion"  + ',' +
+//                        "start"   + '\n');
+//      println("send Motion Start!!!");
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 
-  public void Motion_Start(int theValue)
-  {
-    if (onoff_flag)
-    {
-      opencr_port.write("hand"     + ',' +
-                        "once"  + '\n');
-      println("Motion Start!!!");
-
-      motion_num = 0;
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
-
-  void Motion_Repeat(boolean flag)
-  {
-    if (onoff_flag)
-    {
-      if (flag)
-      {
-        opencr_port.write("hand"    + ',' +
-                          "repeat"  + '\n');
-      }
-      else
-      {
-        opencr_port.write("hand"  + ',' +
-                          "stop"  + '\n');;
-      }
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
-
-  public void Motion_1(int theValue)
-  {
-    if (onoff_flag)
-    {
-      opencr_port.write("motion"  + ',' +
-                        "1"   + '\n');
-      println("Motion 1");
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
-
-  public void Motion_2(int theValue)
-  {
-    if (onoff_flag)
-    {
-      opencr_port.write("motion"  + ',' +
-                        "2"    + '\n');
-      println("Motion 2");
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+//  public void Stop(int theValue)
+//  {
+//    if (onoff_flag)
+//    {
+//      opencr_port.write("motion"  + ',' +
+//                        "stop"    + '\n');
+//      println("send Motion Stop!!!");
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 }
