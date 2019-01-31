@@ -644,11 +644,11 @@ class ChildApplet extends PApplet
        .setColorActive(color(0,128,0))
        ;
 
-    cp5.addTab("Hand Teaching")
-       .setColorBackground(color(100, 160, 0))
-       .setColorLabel(color(255))
-       .setColorActive(color(0,0,255))
-       ;
+    //cp5.addTab("Hand Teaching")
+    //   .setColorBackground(color(100, 160, 0))
+    //   .setColorLabel(color(255))
+    //   .setColorActive(color(0,0,255))
+    //   ;
 
     cp5.addTab("Motion")
        .setColorBackground(color(0, 160, 100))
@@ -667,10 +667,10 @@ class ChildApplet extends PApplet
        .setId(2)
        ;
 
-    cp5.getTab("Hand Teaching")
-       .activateEvent(true)
-       .setId(3)
-       ;
+    //cp5.getTab("Hand Teaching")
+    //   .activateEvent(true)
+    //   .setId(3)
+    //   ;
 
     cp5.getTab("Motion")
        .activateEvent(true)
@@ -827,48 +827,48 @@ class ChildApplet extends PApplet
       .setColorBackground(color(255, 255, 153))
       ;
 
-/*******************************************************************************
-* Init Hand Teaching Controller
-*******************************************************************************/
-    cp5.addToggle("Dynamixel_OnOff")
-       .setPosition(0,130)
-       .setSize(400,40)
-       .setMode(Toggle.SWITCH)
-       .setFont(createFont("arial",15))
-       .setColorActive(color(196, 196, 196))
-       .setColorBackground(color(255, 255, 153))
-       ;
+///*******************************************************************************
+//* Init Hand Teaching Controller
+//*******************************************************************************/
+//    cp5.addToggle("Dynamixel_OnOff")
+//       .setPosition(0,130)
+//       .setSize(400,40)
+//       .setMode(Toggle.SWITCH)
+//       .setFont(createFont("arial",15))
+//       .setColorActive(color(196, 196, 196))
+//       .setColorBackground(color(255, 255, 153))
+//       ;
        
-    cp5.addButton("Motion_Clear")
-       .setValue(0)
-       .setPosition(0,210)
-       .setSize(200,100)
-       .setFont(createFont("arial",15))
-       ;
+//    cp5.addButton("Motion_Clear")
+//       .setValue(0)
+//       .setPosition(0,210)
+//       .setSize(200,100)
+//       .setFont(createFont("arial",15))
+//       ;
 
-    cp5.addButton("Make_Joint_Pose")
-       .setValue(0)
-       .setPosition(200,210)
-       .setSize(200,100)
-       .setFont(createFont("arial",15))
-       ;
+//    cp5.addButton("Make_Joint_Pose")
+//       .setValue(0)
+//       .setPosition(200,210)
+//       .setSize(200,100)
+//       .setFont(createFont("arial",15))
+//       ;
 
 
-    cp5.addButton("Motion_Start")
-       .setValue(0)
-       .setPosition(0,400)
-       .setSize(400,80)
-       .setFont(createFont("arial",15))
-       ;
+//    cp5.addButton("Motion_Start")
+//       .setValue(0)
+//       .setPosition(0,400)
+//       .setSize(400,80)
+//       .setFont(createFont("arial",15))
+//       ;
 
-    cp5.addToggle("Motion_Repeat")
-       .setPosition(0,490)
-       .setSize(400,80)
-       .setMode(Toggle.SWITCH)
-       .setFont(createFont("arial",15))
-       .setColorActive(color(196, 196, 196))
-       .setColorBackground(color(255, 255, 153))
-       ;
+//    cp5.addToggle("Motion_Repeat")
+//       .setPosition(0,490)
+//       .setSize(400,80)
+//       .setMode(Toggle.SWITCH)
+//       .setFont(createFont("arial",15))
+//       .setColorActive(color(196, 196, 196))
+//       .setColorBackground(color(255, 255, 153))
+//       ;
 
 /*******************************************************************************
 * Init Motion
@@ -902,11 +902,11 @@ class ChildApplet extends PApplet
     cp5.getController("Down").moveTo("Task Space Control");
     cp5.getController("Suction").moveTo("Task Space Control");
 
-    cp5.getController("Dynamixel_OnOff").moveTo("Hand Teaching");
-    cp5.getController("Motion_Clear").moveTo("Hand Teaching");
-    cp5.getController("Make_Joint_Pose").moveTo("Hand Teaching");
-    cp5.getController("Motion_Start").moveTo("Hand Teaching");
-    cp5.getController("Motion_Repeat").moveTo("Hand Teaching");
+    //cp5.getController("Dynamixel_OnOff").moveTo("Hand Teaching");
+    //cp5.getController("Motion_Clear").moveTo("Hand Teaching");
+    //cp5.getController("Make_Joint_Pose").moveTo("Hand Teaching");
+    //cp5.getController("Motion_Start").moveTo("Hand Teaching");
+    //cp5.getController("Motion_Repeat").moveTo("Hand Teaching");
 
     cp5.getController("Start").moveTo("Motion");
     cp5.getController("Stop").moveTo("Motion");
@@ -1199,126 +1199,126 @@ class ChildApplet extends PApplet
     }
   }
 
-/*******************************************************************************
-* Init Function of Hand Teaching Controller
-*******************************************************************************/
-  void Dynamixel_OnOff(boolean flag)
-  {
-    if (onoff_flag)
-    {
-      if (flag)
-      {
-        opencr_port.write("motor"  + ',' +
-                          "disable"     + '\n');
-        println("send motor disable");
-      }
-      else
-      {
-        opencr_port.write("motor"  + ',' +
-                          "enable"      + '\n');
-        println("send motor enable");
-      }
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+///*******************************************************************************
+//* Init Function of Hand Teaching Controller
+//*******************************************************************************/
+//  void Dynamixel_OnOff(boolean flag)
+//  {
+//    if (onoff_flag)
+//    {
+//      if (flag)
+//      {
+//        opencr_port.write("motor"  + ',' +
+//                          "disable"     + '\n');
+//        println("send motor disable");
+//      }
+//      else
+//      {
+//        opencr_port.write("motor"  + ',' +
+//                          "enable"      + '\n');
+//        println("send motor enable");
+//      }
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
   
-  public void Motion_Clear(int theValue)
-  {
-    if (onoff_flag)
-    {
-      opencr_port.write("get" + ',' +
-                        "clear"  + '\n');
-      println("send get clear");
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+//  public void Motion_Clear(int theValue)
+//  {
+//    if (onoff_flag)
+//    {
+//      opencr_port.write("get" + ',' +
+//                        "clear"  + '\n');
+//      println("send get clear");
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 
-  public void Make_Joint_Pose(int theValue)
-  {
-    if (onoff_flag)
-    {
-      opencr_port.write("get"      + ',' +
-                        "pose"     + ',' +
-                        motion_num + '\n');
-      println("send get pose");
-      motion_num++;
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+//  public void Make_Joint_Pose(int theValue)
+//  {
+//    if (onoff_flag)
+//    {
+//      opencr_port.write("get"      + ',' +
+//                        "pose"     + ',' +
+//                        motion_num + '\n');
+//      println("send get pose");
+//      motion_num++;
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 
-  public void Motion_Start(int theValue)
-  {
-    if (onoff_flag)
-    {
-      opencr_port.write("hand"     + ',' +
-                        "once"  + '\n');
-      println("send Motion Start!!!");
+//  public void Motion_Start(int theValue)
+//  {
+//    if (onoff_flag)
+//    {
+//      opencr_port.write("hand"     + ',' +
+//                        "once"  + '\n');
+//      println("send Motion Start!!!");
 
-      motion_num = 0;
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+//      motion_num = 0;
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 
-  void Motion_Repeat(boolean flag)
-  {
-    if (onoff_flag)
-    {
-      if (flag)
-      {
-        opencr_port.write("hand"    + ',' +
-                          "repeat"  + '\n');
-        println("send hand repeat");
-      }
-      else
-      {
-        opencr_port.write("hand"  + ',' +
-                          "stop"  + '\n');
-        println("send hand stop");
-      }
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+//  void Motion_Repeat(boolean flag)
+//  {
+//    if (onoff_flag)
+//    {
+//      if (flag)
+//      {
+//        opencr_port.write("hand"    + ',' +
+//                          "repeat"  + '\n');
+//        println("send hand repeat");
+//      }
+//      else
+//      {
+//        opencr_port.write("hand"  + ',' +
+//                          "stop"  + '\n');
+//        println("send hand stop");
+//      }
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 
-  public void Start(int theValue)
-  {
-    if (onoff_flag)
-    {
-      opencr_port.write("motion"  + ',' +
-                        "start"   + '\n');
-      println("send Motion Start!!!");
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+//  public void Start(int theValue)
+//  {
+//    if (onoff_flag)
+//    {
+//      opencr_port.write("motion"  + ',' +
+//                        "start"   + '\n');
+//      println("send Motion Start!!!");
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 
-  public void Stop(int theValue)
-  {
-    if (onoff_flag)
-    {
-      opencr_port.write("motion"  + ',' +
-                        "stop"    + '\n');
-      println("send Motion Stop!!!");
-    }
-    else
-    {
-      println("Please, Set On Controller");
-    }
-  }
+//  public void Stop(int theValue)
+//  {
+//    if (onoff_flag)
+//    {
+//      opencr_port.write("motion"  + ',' +
+//                        "stop"    + '\n');
+//      println("send Motion Stop!!!");
+//    }
+//    else
+//    {
+//      println("Please, Set On Controller");
+//    }
+//  }
 }
