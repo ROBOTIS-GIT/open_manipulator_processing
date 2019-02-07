@@ -670,10 +670,9 @@ class ChildApplet extends PApplet
       ;
 
 /*******************************************************************************
-* Init Motion
+* Init Task Space Controller
 *******************************************************************************/
     cp5.addButton("Motion_Start")
-       .setCaptionLabel("Motion Start")
        .setValue(0)
        .setPosition(0,200)
        .setSize(400,100)
@@ -681,7 +680,25 @@ class ChildApplet extends PApplet
        ;
 
     cp5.addButton("Motion_Stop")
-       .setCaptionLabel("Motion Stop")
+       .setValue(0)
+       .setPosition(0,330)
+       .setSize(400,100)
+       .setFont(createFont("arial",15))
+       ;
+
+/*******************************************************************************
+* Init Motion
+*******************************************************************************/
+    cp5.addButton("Motion_Start")
+       .setCaptionLabel("Motion_Start")
+       .setValue(0)
+       .setPosition(0,200)
+       .setSize(400,100)
+       .setFont(createFont("arial",15))
+       ;
+
+    cp5.addButton("Motion_Stop")
+       .setCaptionLabel("Motion_Stop")
        .setValue(0)
        .setPosition(0,400)
        .setSize(400,100)
@@ -958,7 +975,7 @@ class ChildApplet extends PApplet
 /*******************************************************************************
 * Init Function of Motion
 *******************************************************************************/
-  public void Motion_Start(int theValue)
+  public void Demo_Start(int theValue)
   {
     if (onoff_flag)
     {
@@ -971,7 +988,7 @@ class ChildApplet extends PApplet
     }
   }
 
-  public void Motion_Stop(int theValue)
+  public void Demo_Stop(int theValue)
   {
     if (onoff_flag)
     {

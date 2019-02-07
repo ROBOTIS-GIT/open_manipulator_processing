@@ -17,7 +17,7 @@
 /* Authors: Darby Lim */
 
 /**
- * this code is compatible with open_manipulator_scara.ino
+ * this code is compatible with open_manipulator_planar.ino
 **/
 
 // Multiple Window
