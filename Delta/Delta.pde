@@ -31,18 +31,15 @@ import processing.serial.*;
 
 // Shape variables
 PShape base_shape;
-PShape goal_link1_shape1, goal_link2_shape1, goal_link3_shape1, 
-       goal_link4_shape1, goal_link5_shape1, goal_link6_shape1, 
-       goal_link7_shape1, goal_link8_shape1, goal_link9_shape1, 
-       goal_tool_shape1;
-PShape ctrl_link1_shape1, ctrl_link2_shape1, ctrl_link3_shape1, 
-       ctrl_link4_shape1, ctrl_link5_shape1, ctrl_link6_shape1, 
-       ctrl_link7_shape1, ctrl_link8_shape1, ctrl_link9_shape1, 
-       ctrl_tool_shape1;
 PShape goal_link1_shape, goal_link2_shape, goal_link3_shape, 
-       goal_link4_shape, goal_link5_shape, goal_tool_shape;
+       goal_link4_shape, goal_link5_shape, goal_link6_shape, 
+       goal_link7_shape, goal_link8_shape, goal_link9_shape, 
+       goal_tool_shape;
 PShape ctrl_link1_shape, ctrl_link2_shape, ctrl_link3_shape, 
-       ctrl_link4_shape, ctrl_link5_shape, ctrl_tool_shape;
+       ctrl_link4_shape, ctrl_link5_shape, ctrl_link6_shape, 
+       ctrl_link7_shape, ctrl_link8_shape, ctrl_link9_shape, 
+       ctrl_tool_shape;
+
 
 // Model pose
 float model_trans_x, model_trans_y, model_trans_z, model_scale_factor;
@@ -54,13 +51,18 @@ float world_rot_x, world_rot_y;
 Serial opencr_port;
 
 // Angle variable
-float[] receive_joint_angle = new float[7];
+float[] receive_joint_angle = new float[15];
+float[] current_joint_angle = new float[15];
 float receive_tool_pos = 0.0;
 
 float[] ctrl_joint_angle = new float[15];
 float ctrl_tool_pos = 0.0;
 
-float[] current_joint_angle = new float[7];
+int tabFlag = 1;
+
+float[] visual_target_pose_x = new float[50];
+float[] visual_target_pose_y = new float[50];
+float[] visual_target_pose_z = new float[50];
 
 /*******************************************************************************
 * Setting window size
@@ -124,9 +126,9 @@ void serialEvent(Serial opencr_port)
     for (int cmd_cnt = 1; cmd_cnt < cmd.length; cmd_cnt++)
     {
       receive_joint_angle[cmd_cnt-1] = float(cmd[cmd_cnt]);
-      print("joint " + cmd_cnt + ": " + cmd[cmd_cnt] + "  ");
+      // print("joint " + cmd_cnt + ": " + cmd[cmd_cnt] + "  ");
     }
-    println("");
+    // println("");
   }
   else if (cmd[0].equals("tool"))
   {
@@ -135,8 +137,8 @@ void serialEvent(Serial opencr_port)
 
     receive_tool_pos = ctrl_tool_pos = tool2pos;
     
-    print("tool : " + cmd[1]);
-    println("");
+    // print("tool : " + cmd[1]);
+    // println("");
   }
   else
   {
@@ -180,70 +182,38 @@ void initShape()
 {
 
   base_shape = loadShape("meshes/base.obj");
-  goal_link1_shape1 = loadShape("meshes/link1.obj");
-  goal_link2_shape1 = loadShape("meshes/link1.obj");
-  goal_link3_shape1 = loadShape("meshes/link1.obj");
-  goal_link4_shape1 = loadShape("meshes/link2.obj");
-  goal_link5_shape1 = loadShape("meshes/link2.obj");
-  goal_link6_shape1 = loadShape("meshes/link2.obj");
-  goal_link7_shape1 = loadShape("meshes/link2.obj");
-  goal_link8_shape1 = loadShape("meshes/link2.obj");
-  goal_link9_shape1 = loadShape("meshes/link2.obj");
-  goal_tool_shape1  = loadShape("meshes/tool.obj");
+  goal_link1_shape = loadShape("meshes/link1.obj");
+  goal_link2_shape = loadShape("meshes/link1.obj");
+  goal_link3_shape = loadShape("meshes/link1.obj");
+  goal_link4_shape = loadShape("meshes/link2.obj");
+  goal_link5_shape = loadShape("meshes/link2.obj");
+  goal_link6_shape = loadShape("meshes/link2.obj");
+  goal_link7_shape = loadShape("meshes/link2.obj");
+  goal_link8_shape = loadShape("meshes/link2.obj");
+  goal_link9_shape = loadShape("meshes/link2.obj");
+  goal_tool_shape  = loadShape("meshes/tool.obj");
 
-  ctrl_link1_shape1 = loadShape("meshes/link1.obj");
-  ctrl_link2_shape1 = loadShape("meshes/link1.obj");
-  ctrl_link3_shape1 = loadShape("meshes/link1.obj");
-  ctrl_link4_shape1 = loadShape("meshes/link2.obj");
-  ctrl_link5_shape1 = loadShape("meshes/link2.obj");
-  ctrl_link6_shape1 = loadShape("meshes/link2.obj");
-  ctrl_link7_shape1 = loadShape("meshes/link2.obj");
-  ctrl_link8_shape1 = loadShape("meshes/link2.obj");
-  ctrl_link9_shape1 = loadShape("meshes/link2.obj");
-  ctrl_tool_shape1  = loadShape("meshes/tool.obj");
-
-  // For What?????
-  goal_link1_shape1.setFill(color(255,255,255));
-  goal_link2_shape1.setFill(color(255,255,255));
-  goal_link3_shape1.setFill(color(255,255,255));
-  goal_link4_shape1.setFill(color(255,255,255));
-  goal_link5_shape1.setFill(color(255,255,255));
-  goal_link6_shape1.setFill(color(255,255,255));
-  goal_link7_shape1.setFill(color(255,255,255));
-  goal_link8_shape1.setFill(color(255,255,255));
-  goal_link9_shape1.setFill(color(255,255,255));
-  goal_tool_shape1.setFill(color(255,255,255));
-
-  ctrl_link1_shape1.setFill(color(200));
-  ctrl_link2_shape1.setFill(color(200));
-  ctrl_link3_shape1.setFill(color(200));
-  ctrl_link4_shape1.setFill(color(200));
-  ctrl_link5_shape1.setFill(color(200));
-  ctrl_link6_shape1.setFill(color(200));
-  ctrl_link7_shape1.setFill(color(200));
-  ctrl_link8_shape1.setFill(color(200));
-  ctrl_link9_shape1.setFill(color(200));
-  ctrl_tool_shape1.setFill(color(200));
-
-///-------------remove--------------//   
-  goal_link1_shape = loadShape("meshes/SCARA_link1.obj");
-  goal_link2_shape = loadShape("meshes/SCARA_link2.obj");
-  goal_link3_shape = loadShape("meshes/SCARA_link3.obj");
-  goal_link4_shape = loadShape("meshes/SCARA_link4.obj");
-  goal_tool_shape  = loadShape("meshes/SCARA_tool.obj");
-
-  ctrl_link1_shape = loadShape("meshes/SCARA_link1.obj");
-  ctrl_link2_shape = loadShape("meshes/SCARA_link2.obj");
-  ctrl_link3_shape = loadShape("meshes/SCARA_link3.obj");
-  ctrl_link4_shape = loadShape("meshes/SCARA_link4.obj");
-  ctrl_tool_shape  = loadShape("meshes/SCARA_tool.obj");
+  ctrl_link1_shape = loadShape("meshes/link1.obj");
+  ctrl_link2_shape = loadShape("meshes/link1.obj");
+  ctrl_link3_shape = loadShape("meshes/link1.obj");
+  ctrl_link4_shape = loadShape("meshes/link2.obj");
+  ctrl_link5_shape = loadShape("meshes/link2.obj");
+  ctrl_link6_shape = loadShape("meshes/link2.obj");
+  ctrl_link7_shape = loadShape("meshes/link2.obj");
+  ctrl_link8_shape = loadShape("meshes/link2.obj");
+  ctrl_link9_shape = loadShape("meshes/link2.obj");
+  ctrl_tool_shape  = loadShape("meshes/tool.obj");
 
   ctrl_link1_shape.setFill(color(200));
   ctrl_link2_shape.setFill(color(200));
   ctrl_link3_shape.setFill(color(200));
   ctrl_link4_shape.setFill(color(200));
+  ctrl_link5_shape.setFill(color(200));
+  ctrl_link6_shape.setFill(color(200));
+  ctrl_link7_shape.setFill(color(200));
+  ctrl_link8_shape.setFill(color(200));
+  ctrl_link9_shape.setFill(color(200));
   ctrl_tool_shape.setFill(color(200));
-///-------------remove--------------//   
 
   setJointAngle(0, 0, 0);
   gripperOn();
@@ -262,6 +232,46 @@ void setWindow()
 
   rotateX(radians(90));
   rotateZ(radians(140));
+}
+
+/*******************************************************************************
+* Draw sphere
+*******************************************************************************/
+void drawSphere(int x, int y, int z, int r, int g, int b, int size)
+{
+  translate(x, y, z);
+  stroke(r,g,b);
+  sphere(size);
+}
+
+void saveSpherePose()
+{
+  for (int i = 0; i < visual_target_pose_x.length - 1; i++)
+  {
+    visual_target_pose_x[i] = visual_target_pose_x[i + 1];
+    visual_target_pose_y[i] = visual_target_pose_y[i + 1];
+    visual_target_pose_z[i] = visual_target_pose_z[i + 1];
+  }
+
+  visual_target_pose_x[visual_target_pose_x.length - 1] = modelX(0,0,0);
+  visual_target_pose_y[visual_target_pose_y.length - 1] = modelY(0,0,0);
+  visual_target_pose_z[visual_target_pose_z.length - 1] = modelZ(0,0,0);
+}
+
+void drawSphereAfterEffect()
+{
+  for (int i = 0; i < visual_target_pose_x.length; i++)
+  { 
+    pushMatrix();
+    rotateZ(radians(90));
+    rotateX(radians(0));
+    translate(-width/2, -height/2-200, 0);
+    
+    translate(visual_target_pose_x[i], visual_target_pose_y[i], visual_target_pose_z[i]);
+    stroke(255,255,255);
+    sphere(1.5);
+    popMatrix();
+  }
 }
 
 /*******************************************************************************
@@ -297,76 +307,24 @@ void drawManipulator()
   popMatrix();
 
   //// First Set
-  //pushMatrix();
-  //translate(-model_trans_x, -model_trans_y, -model_trans_z);
-  //translate(-0.1705*1000, 0, 0);
-  //rotateZ(-current_joint_angle[0]+PI/4);
-  //shape(goal_link1_shape1);
-  //drawLocalFrame();
-
-  //translate(0.120*1000, 0, 0);
-  //rotateZ(-current_joint_angle[3]-PI*7/12);
-  //shape(goal_link4_shape1);
-
-  //translate(0.098*1000, 0, 0);
-  //rotateZ(-current_joint_angle[6]+PI/3);
-  //translate(0.0366*1000, 0, 0);
-  //shape(goal_tool_shape1);
-  
-  //popMatrix();
-  
-  //// Second Set
-  //pushMatrix();
-  //translate(-model_trans_x, -model_trans_y, -model_trans_z);
-  //rotateZ(-PI*2/3);  
-  //translate(-0.1705*1000, 0, 0);
-
-  //rotateZ(-current_joint_angle[1]+PI/4);
-  //shape(goal_link2_shape1);
-  //drawLocalFrame();
- 
-  //translate(0.120*1000, 0, 0);
-  //rotateZ(-current_joint_angle[4]-PI*7/12);
-  //shape(goal_link5_shape1);
-
-  //popMatrix();
-    
-  ////// Third Set
-  //pushMatrix();
-  //translate(-model_trans_x, -model_trans_y, -model_trans_z);
-  //rotateZ(-PI*4/3);  
-  //translate(-0.1705*1000, 0, 0);
-
-  //rotateZ(-current_joint_angle[2]+PI/4);
-  //shape(goal_link3_shape1);
-  //drawLocalFrame();
-
-  //translate(0.120*1000, 0, 0);
-  //rotateZ(-current_joint_angle[5]-PI*7/12);
-  //shape(goal_link6_shape1);
-
-  //popMatrix();
- 
-  ////----------------------- Control
-  // First Set
   pushMatrix();
   translate(-model_trans_x, -model_trans_y, -model_trans_z);
   translate(-0.055*1000, 0, 0.210*1000);
   
-  rotateY(-ctrl_joint_angle[0]);
-  shape(goal_link1_shape1);
+  rotateY(-receive_joint_angle[0]);
+  shape(goal_link1_shape);
   drawLocalFrame();
 
   translate(-0.100*1000, 0.023*1000, 0);
-  rotateZ(-ctrl_joint_angle[4]);
-  rotateY(-ctrl_joint_angle[3]-PI*127/180);
-  shape(goal_link4_shape1);
+  rotateZ(-receive_joint_angle[4]);
+  rotateY(-receive_joint_angle[3]-PI*127/180);
+  shape(goal_link4_shape);
   
   translate(-0.225*1000, -0.023*1000, 0);
-  rotateY(-ctrl_joint_angle[9]-PI*53/180);
+  rotateY(-receive_joint_angle[9]-PI*53/180);
   //rotateZ(PI/3);
-  rotateZ(-ctrl_joint_angle[10]);
-  shape(goal_tool_shape1);
+  rotateZ(-receive_joint_angle[10]);
+  shape(goal_tool_shape);
  
   popMatrix();
   
@@ -376,11 +334,11 @@ void drawManipulator()
   translate(-model_trans_x, -model_trans_y, -model_trans_z);
   translate(-0.055*1000, 0, 0.210*1000);
   
-  rotateY(-ctrl_joint_angle[0]);
+  rotateY(-receive_joint_angle[0]);
   translate(-0.100*1000, -0.023*1000, 0);
-  rotateZ(-ctrl_joint_angle[4]);
-  rotateY(-ctrl_joint_angle[3]-PI*127/180);
-  shape(goal_link5_shape1);
+  rotateZ(-receive_joint_angle[4]);
+  rotateY(-receive_joint_angle[3]-PI*127/180);
+  shape(goal_link5_shape);
 
   popMatrix();
 
@@ -390,14 +348,14 @@ void drawManipulator()
   rotateZ(-PI*2/3);  
   translate(-0.055*1000, 0, 0.210*1000);
 
-  rotateY(-ctrl_joint_angle[1]);
-  shape(goal_link2_shape1);
+  rotateY(-receive_joint_angle[1]);
+  shape(goal_link2_shape);
   drawLocalFrame();
  
   translate(-0.100*1000, 0.023*1000, 0);
-  rotateZ(-ctrl_joint_angle[6]);
-  rotateY(-ctrl_joint_angle[5]-PI*127/180);
-  shape(goal_link6_shape1);
+  rotateZ(-receive_joint_angle[6]);
+  rotateY(-receive_joint_angle[5]-PI*127/180);
+  shape(goal_link6_shape);
 
   popMatrix();
     
@@ -408,14 +366,14 @@ void drawManipulator()
   rotateZ(-PI*2/3);  
   translate(-0.055*1000, 0, 0.210*1000);
 
-  rotateY(-ctrl_joint_angle[1]);
-  shape(goal_link2_shape1);
+  rotateY(-receive_joint_angle[1]);
+  shape(goal_link2_shape);
   drawLocalFrame();
  
   translate(-0.100*1000, -0.023*1000, 0);
-  rotateZ(-ctrl_joint_angle[6]);
-  rotateY(-ctrl_joint_angle[5]-PI*127/180);
-  shape(goal_link7_shape1);
+  rotateZ(-receive_joint_angle[6]);
+  rotateY(-receive_joint_angle[5]-PI*127/180);
+  shape(goal_link7_shape);
 
   popMatrix();
   
@@ -425,14 +383,14 @@ void drawManipulator()
   rotateZ(-PI*4/3);  
   translate(-0.055*1000, 0, 0.210*1000);
 
-  rotateY(-ctrl_joint_angle[2]);
-  shape(goal_link3_shape1);
+  rotateY(-receive_joint_angle[2]);
+  shape(goal_link3_shape);
   drawLocalFrame();
 
   translate(-0.100*1000, 0.023*1000, 0);
-  rotateZ(-ctrl_joint_angle[8]);
-  rotateY(-ctrl_joint_angle[7]-PI*127/180);
-  shape(goal_link8_shape1);
+  rotateZ(-receive_joint_angle[8]);
+  rotateY(-receive_joint_angle[7]-PI*127/180);
+  shape(goal_link8_shape);
 
   popMatrix();
     
@@ -442,16 +400,122 @@ void drawManipulator()
   rotateZ(-PI*4/3);  
   translate(-0.055*1000, 0, 0.210*1000);
 
-  rotateY(-ctrl_joint_angle[2]);
-  shape(goal_link3_shape1);
+  rotateY(-receive_joint_angle[2]);
+  shape(goal_link3_shape);
   drawLocalFrame();
 
   translate(-0.100*1000, -0.023*1000, 0);
-  rotateZ(-ctrl_joint_angle[8]);
-  rotateY(-ctrl_joint_angle[7]-PI*127/180);
-  shape(goal_link9_shape1);
+  rotateZ(-receive_joint_angle[8]);
+  rotateY(-receive_joint_angle[7]-PI*127/180);
+  shape(goal_link9_shape);
   popMatrix();
 
+  if (tabFlag == 1)
+  {
+    // First Set
+    pushMatrix();
+    translate(-model_trans_x, -model_trans_y, -model_trans_z);
+    translate(-0.055*1000, 0, 0.210*1000);
+    
+    rotateY(-ctrl_joint_angle[0]);
+    shape(ctrl_link1_shape);
+    drawLocalFrame();
+
+    translate(-0.100*1000, 0.023*1000, 0);
+    rotateZ(-ctrl_joint_angle[4]);
+    rotateY(-ctrl_joint_angle[3]-PI*127/180);
+    shape(ctrl_link4_shape);
+    
+    translate(-0.225*1000, -0.023*1000, 0);
+    rotateY(-ctrl_joint_angle[9]-PI*53/180);
+    //rotateZ(PI/3);
+    rotateZ(-ctrl_joint_angle[10]);
+    shape(ctrl_tool_shape);
+  
+    popMatrix();
+    
+
+    // First Set
+    pushMatrix();
+    translate(-model_trans_x, -model_trans_y, -model_trans_z);
+    translate(-0.055*1000, 0, 0.210*1000);
+    
+    rotateY(-ctrl_joint_angle[0]);
+    translate(-0.100*1000, -0.023*1000, 0);
+    rotateZ(-ctrl_joint_angle[4]);
+    rotateY(-ctrl_joint_angle[3]-PI*127/180);
+    shape(ctrl_link5_shape);
+
+    popMatrix();
+
+  //// Second Set
+    pushMatrix();
+    translate(-model_trans_x, -model_trans_y, -model_trans_z);
+    rotateZ(-PI*2/3);  
+    translate(-0.055*1000, 0, 0.210*1000);
+
+    rotateY(-ctrl_joint_angle[1]);
+    shape(ctrl_link2_shape);
+    drawLocalFrame();
+  
+    translate(-0.100*1000, 0.023*1000, 0);
+    rotateZ(-ctrl_joint_angle[6]);
+    rotateY(-ctrl_joint_angle[5]-PI*127/180);
+    shape(ctrl_link6_shape);
+
+    popMatrix();
+      
+      
+  //// Second Set
+    pushMatrix();
+    translate(-model_trans_x, -model_trans_y, -model_trans_z);
+    rotateZ(-PI*2/3);  
+    translate(-0.055*1000, 0, 0.210*1000);
+
+    rotateY(-ctrl_joint_angle[1]);
+    shape(ctrl_link2_shape);
+    drawLocalFrame();
+  
+    translate(-0.100*1000, -0.023*1000, 0);
+    rotateZ(-ctrl_joint_angle[6]);
+    rotateY(-ctrl_joint_angle[5]-PI*127/180);
+    shape(ctrl_link7_shape);
+
+    popMatrix();
+    
+    //// Third Set
+    pushMatrix();
+    translate(-model_trans_x, -model_trans_y, -model_trans_z);
+    rotateZ(-PI*4/3);  
+    translate(-0.055*1000, 0, 0.210*1000);
+
+    rotateY(-ctrl_joint_angle[2]);
+    shape(ctrl_link3_shape);
+    drawLocalFrame();
+
+    translate(-0.100*1000, 0.023*1000, 0);
+    rotateZ(-ctrl_joint_angle[8]);
+    rotateY(-ctrl_joint_angle[7]-PI*127/180);
+    shape(ctrl_link8_shape);
+
+    popMatrix();
+      
+    //// Third Set
+    pushMatrix();
+    translate(-model_trans_x, -model_trans_y, -model_trans_z);
+    rotateZ(-PI*4/3);  
+    translate(-0.055*1000, 0, 0.210*1000);
+
+    rotateY(-ctrl_joint_angle[2]);
+    shape(ctrl_link3_shape);
+    drawLocalFrame();
+
+    translate(-0.100*1000, -0.023*1000, 0);
+    rotateZ(-ctrl_joint_angle[8]);
+    rotateY(-ctrl_joint_angle[7]-PI*127/180);
+    shape(ctrl_link9_shape);
+    popMatrix();
+  }
 }
 
 /*******************************************************************************
@@ -595,10 +659,16 @@ class ChildApplet extends PApplet
 /*******************************************************************************
 * Init Tab
 *******************************************************************************/
-    cp5.addTab("Motion")
-       .setColorBackground(color(242,56,39))
+    cp5.addTab("Task Space Control")
+       .setColorBackground(color(188, 188, 90))
        .setColorLabel(color(255))
-       .setColorActive(color(242,211,39))
+       .setColorActive(color(0,128,0))
+       ;
+
+    cp5.addTab("Motion")
+       .setColorBackground(color(0, 160, 100))
+       .setColorLabel(color(255))
+       .setColorActive(color(0,0,255))
        ; 
 
     cp5.getTab("default")
@@ -607,22 +677,28 @@ class ChildApplet extends PApplet
        .setId(1)
        ;
 
-    cp5.getTab("Motion")
+    cp5.getTab("Task Space Control")
        .activateEvent(true)
        .setId(2)
+       ;
+
+    cp5.getTab("Motion")
+       .activateEvent(true)
+       .setId(3)
        ;
 
 /*******************************************************************************
 * Init Joint Space Controller
 *******************************************************************************/
     headLabel = cp5.addTextlabel("Label")
-                   .setText("Controller for OpenManipulator Delta")
-                   .setPosition(4,17)
+                   .setText("Controller for OpenManipulator")
+                   .setPosition(10,20)
                    .setColorValue(0xffffff00)
                    .setFont(createFont("arial",20))
                    ;
 
     cp5.addToggle("Controller_OnOff")
+       .setCaptionLabel("      Controller Off             Controller On")
        .setPosition(0,50)
        .setSize(400,40)
        .setMode(Toggle.SWITCH)
@@ -633,36 +709,86 @@ class ChildApplet extends PApplet
 
     cp5.addButton("Origin")
        .setValue(0)
-       .setPosition(165,500)
+       .setPosition(0,350)
        .setSize(80,40)
        .setFont(createFont("arial",13))
        .setColorForeground(color(150,150,0))
        .setColorBackground(color(100, 160, 0))
        ;
 
+    cp5.addButton("Basic")
+       .setValue(0)
+       .setPosition(320,350)
+       .setSize(80,40)
+       .setFont(createFont("arial",13))
+       .setColorForeground(color(150,150,0))
+       .setColorBackground(color(100, 160, 0))
+       ;
+
+    cp5.addToggle("Tool_OnOff")
+       .setCaptionLabel("               Tool On                         Tool Off")
+       .setPosition(0,520)
+       .setSize(400,40)
+       .setMode(Toggle.SWITCH)
+       .setFont(createFont("arial",15))
+       .setColorActive(color(196, 196, 196))
+       .setColorBackground(color(255, 255, 153))
+       ;
+
 /*******************************************************************************
 * Init Task Space Controller
 *******************************************************************************/
-    slider2d = cp5.addSlider2D("Drawing")
-                  .setPosition(70,240)
-                  .setSize(260,150)
-                  .setMinMax(-200,-250,200,250)
-                  .setValue(0,0)
-                  ;
+    cp5.addButton("Forward")
+       .setValue(0)
+       .setPosition(150,150)
+       .setSize(100,100)
+       .setFont(createFont("arial",15))
+       ;
 
-    //cp5.addToggle("Drawing_Tool_Set")
-    //   .setPosition(0,520)
-    //   .setSize(400,40)
-    //   .setMode(Toggle.SWITCH)
-    //   .setFont(createFont("arial",15))
-    //   .setColorActive(color(196, 196, 196))
-    //   .setColorBackground(color(255, 255, 153))
-    //   ;
+    cp5.addButton("Back")
+       .setValue(0)
+       .setPosition(150,350)
+       .setSize(100,100)
+       .setFont(createFont("arial",15))
+       ;
+
+    cp5.addButton("Left")
+       .setValue(0)
+       .setPosition(50,250)
+       .setSize(100,100)
+       .setFont(createFont("arial",15))
+       ;
+
+    cp5.addButton("Right")
+       .setValue(0)
+       .setPosition(250,250)
+       .setSize(100,100)
+       .setFont(createFont("arial",15))
+       ;
+
+    cp5.addButton("Set")
+       .setCaptionLabel("Basic")
+       .setValue(0)
+       .setPosition(170,270)
+       .setSize(60,60)
+       .setFont(createFont("arial",15))
+       ;
+
+   cp5.addToggle("Tool_pos")
+      .setCaptionLabel("    Tool")
+      .setPosition(165,480)
+      .setSize(70,70)
+      .setMode(Toggle.SWITCH)
+      .setFont(createFont("arial",10))
+      .setColorActive(color(196, 196, 196))
+      .setColorBackground(color(255, 255, 153))
+      ;
 
 /*******************************************************************************
-* Init Task Space Controller
+* Init Motion
 *******************************************************************************/
     cp5.addButton("Motion_Start")
+       .setCaptionLabel("Motion Start")
        .setValue(0)
        .setPosition(0,200)
        .setSize(400,100)
@@ -670,8 +796,9 @@ class ChildApplet extends PApplet
        ;
 
     cp5.addButton("Motion_Stop")
+       .setCaptionLabel("Motion Stop")
        .setValue(0)
-       .setPosition(0,330)
+       .setPosition(0,400)
        .setSize(400,100)
        .setFont(createFont("arial",15))
        ;
@@ -682,13 +809,27 @@ class ChildApplet extends PApplet
     cp5.getController("Label").moveTo("global");
     cp5.getController("Controller_OnOff").moveTo("global");
 
+    cp5.getController("Forward").moveTo("Task Space Control");
+    cp5.getController("Back").moveTo("Task Space Control");
+    cp5.getController("Left").moveTo("Task Space Control");
+    cp5.getController("Right").moveTo("Task Space Control");
+    cp5.getController("Set").moveTo("Task Space Control");
+    cp5.getController("Tool_pos").moveTo("Task Space Control");
+
     cp5.getController("Motion_Start").moveTo("Motion");
     cp5.getController("Motion_Stop").moveTo("Motion");
   }
 
   public void draw()
   {
-    background(1,35,64);
+    background(0);
+  }
+
+  void controlEvent(ControlEvent theControlEvent) {
+    if (theControlEvent.isTab()) {
+      println("got an event from tab : "+theControlEvent.getTab().getName()+" with id "+theControlEvent.getTab().getId());
+      tabFlag = theControlEvent.getTab().getId();
+    }
   }
 
 /*******************************************************************************
@@ -699,20 +840,20 @@ class ChildApplet extends PApplet
     onoff_flag = flag;
     if (onoff_flag)
     {
-      //joint1.setValue(ctrl_joint_angle[0]);
-      //joint2.setValue(ctrl_joint_angle[1]);
-      //joint3.setValue(ctrl_joint_angle[2]);
-      //tool.setValue(ctrl_tool_pos);
+      joint1.setValue(ctrl_joint_angle[0]);
+      joint2.setValue(ctrl_joint_angle[1]);
+      joint3.setValue(ctrl_joint_angle[2]);
+      tool.setValue(ctrl_tool_pos);
 
-      opencr_port.write("om"   + ',' +
-                        "ready" + '\n');
-      println("OpenManipulator SCARA Ready!!!");
+      opencr_port.write("actuator" + ',' +
+                        "on" + '\n');
+      println("OpenManipulator Delta Ready!!!");
     }
     else
     {
-      opencr_port.write("om"  + ',' +
-                        "end"  + '\n');
-      println("OpenManipulator SCARA End...");
+      opencr_port.write("actuator" + ',' +
+                        "off" + '\n');
+      println("OpenManipulator Delta End...");
     }
   }
 
@@ -740,21 +881,38 @@ class ChildApplet extends PApplet
   {
     if (onoff_flag)
     {
-      //ctrl_joint_angle[0] = 0.0;
-      //ctrl_joint_angle[1] = 0.0;
-      //ctrl_joint_angle[2] = 0.0;
+      ctrl_joint_angle[0] = 0.0;
+      ctrl_joint_angle[1] = 0.0;
+      ctrl_joint_angle[2] = 0.0;
 
-      //joint1.setValue(ctrl_joint_angle[0]);
-      //joint2.setValue(ctrl_joint_angle[1]);
-      //joint3.setValue(ctrl_joint_angle[2]);
-      //tool.setValue(ctrl_tool_pos);
+      joint1.setValue(ctrl_joint_angle[0]);
+      joint2.setValue(ctrl_joint_angle[1]);
+      joint3.setValue(ctrl_joint_angle[2]);
+      tool.setValue(ctrl_tool_pos);
 
-      //opencr_port.write("joint"        + ',' +
-      //                  ctrl_joint_angle[0] + ',' +
-      //                  ctrl_joint_angle[1] + ',' +
-      //                  ctrl_joint_angle[2] + '\n');
-      opencr_port.write("motion"  + ',' +
-                        "stop"    + '\n');
+      opencr_port.write("joint"        + ',' +
+                        ctrl_joint_angle[0] + ',' +
+                        ctrl_joint_angle[1] + ',' +
+                        ctrl_joint_angle[2] + '\n');
+    }
+    else
+    {
+      println("Please, Set On Controller");
+    }
+  }
+
+  public void Basic(int theValue)
+  {
+    if (onoff_flag)
+    {
+      ctrl_joint_angle[0] = 0.0;
+      ctrl_joint_angle[1] = 0.0;
+      ctrl_joint_angle[2] = 0.0;
+
+      opencr_port.write("joint"            + ',' +
+                        ctrl_joint_angle[0] + ',' +
+                        ctrl_joint_angle[1] + ',' +
+                        ctrl_joint_angle[2] + '\n');
     }
     else
     {
@@ -765,155 +923,102 @@ class ChildApplet extends PApplet
 /*******************************************************************************
 * Init Function of Task Space Controller
 *******************************************************************************/
-  void Drawing()
+  public void Forward(int theValue)
   {
-    float posX, posY, posZ;
-
-    posX = slider2d.getArrayValue()[0] * -0.0001;
-    posY = slider2d.getArrayValue()[1] * -0.0001;
-    posZ = 0;
-    
-    opencr_port.write("pos"     + ',' +
-                      posY      + ',' +
-                      posX      + '\n');
-
-    println("x = " + posY + " y = " + posX);
-    
-    float temp_switch;    // dont know why x and y are opposite...
-    temp_switch = posY;
-    posY = posX;
-    posX = temp_switch;
-
-    // Solving IK
-    float[] link = new float[3];
-    float[] start_x = new float[3];
-    float[] start_y = new float[3];
-    float[] start_z = new float[3];
-    float[] temp_x = new float[3];
-    float[] temp_y = new float[3];
-    float[] temp_z = new float[3];
-    float[] target_x = new float[3];
-    float[] target_y = new float[3];
-    float[] target_z = new float[3];
-    float[] diff_x = new float[3];
-    float[] diff_y = new float[3];
-    float[] diff_z = new float[3];
-    float[] temp_target_angle = new float[3];
-    float[] temp_diff = new float[3];
-    float[] target_pose_length = new float[3];
-    float[] target_angle = new float[15];
-   
-    // Link Lengths
-    link[0] = 0.100f;
-    link[1] = 0.225f;
-    link[2] = 0.020f;
-
-    // Start Pose for each set of two joints
-    for (int i=0; i<3; i++){
-      start_x[i] = cos(PI*2.0f/3.0f*i)*(-0.055f);
-      start_y[i] = sin(PI*2.0f/3.0f*i)*(-0.055f);
-      start_z[i] = 0.180f;
+    if (onoff_flag)
+    {
+      opencr_port.write("task"    + ',' +
+                        "f" + '\n');
+      println("Move Forward");
     }
-  
-    // Goal Pose without tool rotation for each set of two joints
-    for (int i=0; i<3; i++){
-      target_x[i] = posX + cos(PI*2.0f/3.0f*i)*(-link[2]);
-      target_y[i] = posY + sin(PI*2.0f/3.0f*i)*(-link[2]);
-      target_z[i] = posZ;
+    else
+    {
+      println("Please, Set On Controller");
     }
-  
-    for (int i=0; i<3; i++){
-      diff_x[i] = target_x[i] - start_x[i];
-      diff_y[i] = target_y[i] - start_y[i];
-      diff_z[i] = target_z[i] - start_z[i];
-    }
-
-    float[] temp = new float[7];
-    float[] temp2 = new float[7];
-    float[] temp_angle = new float[7];
-    float[] temp_angle2 = new float[7];
-
-    // Length of Position Difference and Target Angle
-    for (int i=0; i<3; i++){
-      temp[i] = diff_x[i]*cos(PI*2.0/3.0*i)+diff_y[i]*sin(PI*2.0/3.0*i);
-      temp2[i] = sqrt(temp[i]*temp[i] + diff_z[i]*diff_z[i]);
-      temp_angle[i] = acos((link[1]*link[1] - link[0]*link[0] - diff_x[i]*diff_x[i] - diff_y[i]*diff_y[i] - diff_z[i]*diff_z[i])
-                      / (2.0*link[0]*temp2[i]));
-      temp_angle2[i] = acos(temp[i] / temp2[i]);
-      target_angle[i] = +temp_angle[i] - temp_angle2[i];  
-    }
-
-
-    // Set Joint Angle 
-
-    float[] elbow_x = new float[3];
-    float[] elbow_y = new float[3];
-    float[] elbow_z = new float[3];
-    
-    for (int i=0; i<3; i++){
-      elbow_x[i] = start_x[i] + cos(PI*2.0/3.0*i)*(-link[0])*cos(target_angle[i]);
-      elbow_y[i] = start_y[i] + sin(PI*2.0/3.0*i)*(-link[0])*cos(target_angle[i]);
-      elbow_z[i] = start_z[i] - link[0]*sin(target_angle[i]);
-    }
-
-    float[] diff_x2 = new float[3];
-    float[] diff_y2 = new float[3];
-    float[] diff_z2 = new float[3];
-
-    // Pose difference for each set of two joints
-    for (int i=0; i<3; i++){
-      diff_x2[i] = target_x[i] - elbow_x[i];
-      diff_y2[i] = target_y[i] - elbow_y[i];
-      diff_z2[i] = target_z[i] - elbow_z[i];
-    }  
-
-    float[] temp3 = new float[3];
-    float[] temp4 = new float[3];
-
-    for (int i=0; i<3; i++){
-      // temp3[i] = sqrt(diff_x2[i]*diff_x2[i]+diff_y[i]*diff_y[i]+diff_z[i]*diff_z[i]);
-      target_angle[2*i+3] = PI/2 + acos(-diff_z2[i]/link[1]) - target_angle[i];
-      temp3[i] = diff_x2[i]*cos(PI*2.0/3.0*i)+diff_y2[i]*sin(PI*2.0/3.0*i); 
-      temp4[i] =-diff_x2[i]*sin(PI*2.0/3.0*i)+diff_y2[i]*cos(PI*2.0/3.0*i); 
-      target_angle[2*i+4] = asin(temp4[i] / sqrt(link[1]*link[1]-diff_z2[i]*diff_z2[i]));
-    }
-
-    ctrl_joint_angle[0] = target_angle[0];
-    ctrl_joint_angle[1] = target_angle[1];
-    ctrl_joint_angle[2] = target_angle[2];
-    ctrl_joint_angle[3] = target_angle[3] -PI*127/180;
-    ctrl_joint_angle[4] = target_angle[4];
-    ctrl_joint_angle[5] = target_angle[5] -PI*127/180;
-    ctrl_joint_angle[6] = target_angle[6];
-    ctrl_joint_angle[7] = target_angle[7] -PI*127/180;
-    ctrl_joint_angle[8] = target_angle[8];
-    ctrl_joint_angle[9] = PI- target_angle[0] - target_angle[3] - PI*53/180; 
-    ctrl_joint_angle[10]= target_angle[4]; 
   }
 
-  //void Drawing_Tool_Set(boolean flag)
-  //{
-  //  if (onoff_flag)
-  //  {
-  //    if (flag)
-  //    {
-  //      tool.setValue(-1.0);
-  //      opencr_port.write("tool"  + ',' +
-  //                        "off" + '\n');
-  //    }
-  //    else
-  //    {
-  //      tool.setValue(0.0);
-  //      opencr_port.write("tool"  + ',' +
-  //                        "on" + '\n');
-  //    }
-  //  }
-  //  else
-  //  {
-  //    println("Please, Set On Controller");
-  //  }
-  //}
+  public void Back(int theValue)
+  {
+    if (onoff_flag)
+    {
+      opencr_port.write("task"    + ',' +
+                        "b"    + '\n');
+      println("Move Back");
+    }
+    else
+    {
+      println("Please, Set On Controller");
+    }
+  }
 
+  public void Left(int theValue)
+  {
+    if (onoff_flag)
+    {
+      opencr_port.write("task"    + ',' +
+                        "l"    + '\n');
+      println("Move Left");
+    }
+    else
+    {
+      println("Please, Set On Controller");
+    }
+  }
+
+  public void Right(int theValue)
+  {
+    if (onoff_flag)
+    {
+      opencr_port.write("task"    + ',' +
+                        "r"   + '\n');
+      println("Move Right");
+    }
+    else
+    {
+      println("Please, Set On Controller");
+    }
+  }
+
+  public void Set(int theValue)
+  {
+    if (onoff_flag)
+    {
+      ctrl_joint_angle[0] = -60.0 * PI/180.0;
+      ctrl_joint_angle[1] = 20.0 * PI/180.0;
+      ctrl_joint_angle[2] = 40.0 * PI/180.0;
+
+      opencr_port.write("joint"            + ',' +
+                        ctrl_joint_angle[0] + ',' +
+                        ctrl_joint_angle[1] + ',' +
+                        ctrl_joint_angle[2] + '\n');
+    }
+    else
+    {
+      println("Please, Set On Controller");
+    }
+  }
+
+  void Tool_pos(boolean flag)
+  {
+    if (onoff_flag)
+    {
+      if (flag)
+      {
+        opencr_port.write("tool"  + ',' +
+                          "y" + '\n');
+      }
+      else
+      {
+        opencr_port.write("tool"  + ',' +
+                          "n" + '\n');
+      }
+    }
+    else
+    {
+      println("Please, Set On Controller");
+    }
+  }
+  
 /*******************************************************************************
 * Init Function of Motion
 *******************************************************************************/
@@ -921,7 +1026,7 @@ class ChildApplet extends PApplet
   {
     if (onoff_flag)
     {
-      opencr_port.write("motion"  + ',' +
+      opencr_port.write("demo"  + ',' +
                         "start"   + '\n');
     }
     else
@@ -934,7 +1039,7 @@ class ChildApplet extends PApplet
   {
     if (onoff_flag)
     {
-      opencr_port.write("motion"  + ',' +
+      opencr_port.write("demo"  + ',' +
                         "stop"    + '\n');
     }
     else
@@ -943,3 +1048,153 @@ class ChildApplet extends PApplet
     }
   }
 }
+  
+  
+  // void Drawing()
+  // {
+  //   float posX, posY, posZ;
+
+  //   posX = slider2d.getArrayValue()[0] * -0.0001;
+  //   posY = slider2d.getArrayValue()[1] * -0.0001;
+  //   posZ = 0;
+    
+  //   opencr_port.write("pos"     + ',' +
+  //                     posY      + ',' +
+  //                     posX      + '\n');
+
+  //   println("x = " + posY + " y = " + posX);
+    
+  //   float temp_switch;    // dont know why x and y are opposite...
+  //   temp_switch = posY;
+  //   posY = posX;
+  //   posX = temp_switch;
+
+  //   // Solving IK
+  //   float[] link = new float[3];
+  //   float[] start_x = new float[3];
+  //   float[] start_y = new float[3];
+  //   float[] start_z = new float[3];
+  //   float[] temp_x = new float[3];
+  //   float[] temp_y = new float[3];
+  //   float[] temp_z = new float[3];
+  //   float[] target_x = new float[3];
+  //   float[] target_y = new float[3];
+  //   float[] target_z = new float[3];
+  //   float[] diff_x = new float[3];
+  //   float[] diff_y = new float[3];
+  //   float[] diff_z = new float[3];
+  //   float[] temp_target_angle = new float[3];
+  //   float[] temp_diff = new float[3];
+  //   float[] target_pose_length = new float[3];
+  //   float[] target_angle = new float[15];
+   
+  //   // Link Lengths
+  //   link[0] = 0.100f;
+  //   link[1] = 0.225f;
+  //   link[2] = 0.020f;
+
+  //   // Start Pose for each set of two joints
+  //   for (int i=0; i<3; i++){
+  //     start_x[i] = cos(PI*2.0f/3.0f*i)*(-0.055f);
+  //     start_y[i] = sin(PI*2.0f/3.0f*i)*(-0.055f);
+  //     start_z[i] = 0.180f;
+  //   }
+  
+  //   // Goal Pose without tool rotation for each set of two joints
+  //   for (int i=0; i<3; i++){
+  //     target_x[i] = posX + cos(PI*2.0f/3.0f*i)*(-link[2]);
+  //     target_y[i] = posY + sin(PI*2.0f/3.0f*i)*(-link[2]);
+  //     target_z[i] = posZ;
+  //   }
+  
+  //   for (int i=0; i<3; i++){
+  //     diff_x[i] = target_x[i] - start_x[i];
+  //     diff_y[i] = target_y[i] - start_y[i];
+  //     diff_z[i] = target_z[i] - start_z[i];
+  //   }
+
+  //   float[] temp = new float[7];
+  //   float[] temp2 = new float[7];
+  //   float[] temp_angle = new float[7];
+  //   float[] temp_angle2 = new float[7];
+
+  //   // Length of Position Difference and Target Angle
+  //   for (int i=0; i<3; i++){
+  //     temp[i] = diff_x[i]*cos(PI*2.0/3.0*i)+diff_y[i]*sin(PI*2.0/3.0*i);
+  //     temp2[i] = sqrt(temp[i]*temp[i] + diff_z[i]*diff_z[i]);
+  //     temp_angle[i] = acos((link[1]*link[1] - link[0]*link[0] - diff_x[i]*diff_x[i] - diff_y[i]*diff_y[i] - diff_z[i]*diff_z[i])
+  //                     / (2.0*link[0]*temp2[i]));
+  //     temp_angle2[i] = acos(temp[i] / temp2[i]);
+  //     target_angle[i] = +temp_angle[i] - temp_angle2[i];  
+  //   }
+
+
+  //   // Set Joint Angle 
+
+  //   float[] elbow_x = new float[3];
+  //   float[] elbow_y = new float[3];
+  //   float[] elbow_z = new float[3];
+    
+  //   for (int i=0; i<3; i++){
+  //     elbow_x[i] = start_x[i] + cos(PI*2.0/3.0*i)*(-link[0])*cos(target_angle[i]);
+  //     elbow_y[i] = start_y[i] + sin(PI*2.0/3.0*i)*(-link[0])*cos(target_angle[i]);
+  //     elbow_z[i] = start_z[i] - link[0]*sin(target_angle[i]);
+  //   }
+
+  //   float[] diff_x2 = new float[3];
+  //   float[] diff_y2 = new float[3];
+  //   float[] diff_z2 = new float[3];
+
+  //   // Pose difference for each set of two joints
+  //   for (int i=0; i<3; i++){
+  //     diff_x2[i] = target_x[i] - elbow_x[i];
+  //     diff_y2[i] = target_y[i] - elbow_y[i];
+  //     diff_z2[i] = target_z[i] - elbow_z[i];
+  //   }  
+
+  //   float[] temp3 = new float[3];
+  //   float[] temp4 = new float[3];
+
+  //   for (int i=0; i<3; i++){
+  //     // temp3[i] = sqrt(diff_x2[i]*diff_x2[i]+diff_y[i]*diff_y[i]+diff_z[i]*diff_z[i]);
+  //     target_angle[2*i+3] = PI/2 + acos(-diff_z2[i]/link[1]) - target_angle[i];
+  //     temp3[i] = diff_x2[i]*cos(PI*2.0/3.0*i)+diff_y2[i]*sin(PI*2.0/3.0*i); 
+  //     temp4[i] =-diff_x2[i]*sin(PI*2.0/3.0*i)+diff_y2[i]*cos(PI*2.0/3.0*i); 
+  //     target_angle[2*i+4] = asin(temp4[i] / sqrt(link[1]*link[1]-diff_z2[i]*diff_z2[i]));
+  //   }
+
+  //   ctrl_joint_angle[0] = target_angle[0];
+  //   ctrl_joint_angle[1] = target_angle[1];
+  //   ctrl_joint_angle[2] = target_angle[2];
+  //   ctrl_joint_angle[3] = target_angle[3] -PI*127/180;
+  //   ctrl_joint_angle[4] = target_angle[4];
+  //   ctrl_joint_angle[5] = target_angle[5] -PI*127/180;
+  //   ctrl_joint_angle[6] = target_angle[6];
+  //   ctrl_joint_angle[7] = target_angle[7] -PI*127/180;
+  //   ctrl_joint_angle[8] = target_angle[8];
+  //   ctrl_joint_angle[9] = PI- target_angle[0] - target_angle[3] - PI*53/180; 
+  //   ctrl_joint_angle[10]= target_angle[4]; 
+  // }
+
+  // //void Drawing_Tool_Set(boolean flag)
+  // //{
+  // //  if (onoff_flag)
+  // //  {
+  // //    if (flag)
+  // //    {
+  // //      tool.setValue(-1.0);
+  // //      opencr_port.write("tool"  + ',' +
+  // //                        "off" + '\n');
+  // //    }
+  // //    else
+  // //    {
+  // //      tool.setValue(0.0);
+  // //      opencr_port.write("tool"  + ',' +
+  // //                        "on" + '\n');
+  // //    }
+  // //  }
+  // //  else
+  // //  {
+  // //    println("Please, Set On Controller");
+  // //  }
+  // //}

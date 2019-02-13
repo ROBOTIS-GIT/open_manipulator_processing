@@ -16,7 +16,6 @@
 
 /* Authors: Darby Lim, Hye-Jong KIM, Ryan Shim, Yong-Ho Na */
 
-
 /**
  * this code is compatible with open_manipulator_scara.ino
 **/
@@ -730,14 +729,14 @@ class ChildApplet extends PApplet
       joint3.setValue(ctrl_joint_angle[2]);
       tool.setValue(ctrl_tool_pos);
 
-      opencr_port.write("actuator"   + ',' +
+      opencr_port.write("actuator" + ',' +
                         "on" + '\n');
       println("OpenManipulator SCARA Ready!!!");
     }
     else
     {
-      opencr_port.write("actuator"  + ',' +
-                        "off"  + '\n');
+      opencr_port.write("actuator" + ',' +
+                        "off" + '\n');
       println("OpenManipulator SCARA End...");
     }
   }
