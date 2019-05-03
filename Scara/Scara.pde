@@ -119,19 +119,11 @@ void serialEvent(Serial opencr_port)
     for (int cmd_cnt = 1; cmd_cnt < cmd.length; cmd_cnt++)
     {
       receive_joint_angle[cmd_cnt-1] = float(cmd[cmd_cnt]);
-      // print("joint " + cmd_cnt + ": " + cmd[cmd_cnt] + "  ");
     }
-    // println("");
   }
   else if (cmd[0].equals("tool"))
   {
-    // float angle2pos = map(float(cmd[1]), 0.907, -1.13, 0.010*1000, 0.035*1000);
-    float tool2pos = float(cmd[1]);
-
-    receive_tool_pos = ctrl_tool_pos = tool2pos;
-    
-    // print("tool : " + cmd[1]);
-    // println("");
+    receive_tool_pos = float(cmd[1]);    
   }
   else
   {
@@ -176,14 +168,19 @@ void initShape()
   ctrl_link4_shape = loadShape("meshes/scara_link4.obj");
   ctrl_tool_shape  = loadShape("meshes/scara_tool.obj");
 
-  ctrl_link1_shape.setFill(color(200));
-  ctrl_link2_shape.setFill(color(200));
-  ctrl_link3_shape.setFill(color(200));
-  ctrl_link4_shape.setFill(color(200));
-  ctrl_tool_shape.setFill(color(200));
+  goal_link1_shape.setFill(color(200));
+  goal_link2_shape.setFill(color(200));
+  goal_link3_shape.setFill(color(200));
+  goal_link4_shape.setFill(color(200));
+  goal_tool_shape.setFill(color(200));
+
+  ctrl_link1_shape.setFill(color(255,255,255));
+  ctrl_link2_shape.setFill(color(255,255,255));
+  ctrl_link3_shape.setFill(color(255,255,255));
+  ctrl_link4_shape.setFill(color(255,255,255));
+  ctrl_tool_shape.setFill(color(255,255,255));
 
   setJointAngle(0, 0, 0);
-  gripperOn();
 }
 
 /*******************************************************************************
@@ -382,22 +379,6 @@ void setJointAngle(float angle1, float angle2, float angle3)
   ctrl_joint_angle[0] = angle1;
   ctrl_joint_angle[1] = angle2;
   ctrl_joint_angle[2] = angle3;
-}
-
-/*******************************************************************************
-* Gripper on
-*******************************************************************************/
-void gripperOn()
-{
-  ctrl_tool_pos = radians(0.0);
-}
-
-/*******************************************************************************
-* Gripper off
-*******************************************************************************/
-void gripperOff()
-{
-  ctrl_tool_pos = radians(-1.0);
 }
 
 /*******************************************************************************
@@ -601,8 +582,8 @@ class ChildApplet extends PApplet
        .setFont(createFont("arial",15))
        ;
 
-    cp5.addButton("Set_Tool")
-       .setCaptionLabel("Set Tool")
+    cp5.addButton("Send_Tool_Angle")
+       .setCaptionLabel("Send Tool Angle")
        .setValue(0)
        .setPosition(0,460)
        .setSize(400,40)
@@ -768,16 +749,15 @@ class ChildApplet extends PApplet
       ctrl_joint_angle[0] = 0.0;
       ctrl_joint_angle[1] = 0.0;
       ctrl_joint_angle[2] = 0.0;
-
-      joint1.setValue(ctrl_joint_angle[0]);
-      joint2.setValue(ctrl_joint_angle[1]);
-      joint3.setValue(ctrl_joint_angle[2]);
-      tool.setValue(ctrl_tool_pos);
+      ctrl_tool_pos = -0.5;
 
       opencr_port.write("joint"        + ',' +
                         ctrl_joint_angle[0] + ',' +
                         ctrl_joint_angle[1] + ',' +
                         ctrl_joint_angle[2] + '\n');
+
+      opencr_port.write("tool"  + ',' +
+                        ctrl_tool_pos + '\n');
     }
     else
     {
@@ -792,11 +772,15 @@ class ChildApplet extends PApplet
       ctrl_joint_angle[0] = -60.0 * PI/180.0;
       ctrl_joint_angle[1] = 20.0 * PI/180.0;
       ctrl_joint_angle[2] = 40.0 * PI/180.0;
+      ctrl_tool_pos = -0.5;
 
-      opencr_port.write("joint"            + ',' +
+      opencr_port.write("joint"             + ',' +
                         ctrl_joint_angle[0] + ',' +
                         ctrl_joint_angle[1] + ',' +
                         ctrl_joint_angle[2] + '\n');
+
+      opencr_port.write("tool"  + ',' +
+                        ctrl_tool_pos + '\n');
     }
     else
     {
@@ -808,7 +792,7 @@ class ChildApplet extends PApplet
   {
     if (onoff_flag)
     {
-      opencr_port.write("joint"        + ',' +
+      opencr_port.write("joint"             + ',' +
                         ctrl_joint_angle[0] + ',' +
                         ctrl_joint_angle[1] + ',' +
                         ctrl_joint_angle[2] + '\n');
@@ -819,11 +803,11 @@ class ChildApplet extends PApplet
     }
   }
 
-  public void Set_Tool(int theValue)
+  public void Send_Tool_Angle(int theValue)
   {
     if (onoff_flag)
     {
-      opencr_port.write("tool"  + ',' +
+      opencr_port.write("tool"        + ',' +
                         ctrl_tool_pos + '\n');
     }
     else
@@ -838,13 +822,11 @@ class ChildApplet extends PApplet
     {
       if (flag)
       {
-        tool.setValue(-0.5);
         opencr_port.write("tool"  + ',' +
                           "n" + '\n');
       }
       else
       {
-        tool.setValue(0.0);
         opencr_port.write("tool"  + ',' +
                           "y" + '\n');
       }
@@ -940,12 +922,12 @@ class ChildApplet extends PApplet
       if (flag)
       {
         opencr_port.write("tool"  + ',' +
-                          "y" + '\n');
+                          "n" + '\n');
       }
       else
       {
         opencr_port.write("tool"  + ',' +
-                          "n" + '\n');
+                          "y" + '\n');
       }
     }
     else
